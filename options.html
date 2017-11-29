@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+	<style>
+		table {
+		    font-family: arial, sans-serif;
+		    border-collapse: collapse;
+		    width: 100%;
+		}
+		
+		td, th {
+		    border: 1px solid #dddddd;
+		    text-align: left;
+		    padding: 8px;
+		}
+		
+		tr:nth-child(even) {
+		    background-color: #dddddd;
+		}
+
+		button {
+			height: 25px;
+		}
+	</style>
+  </head>
+
+  <body>
+
+    <form>
+    	<div>Enter your search engine details for custom search engine plugin below:<br>&nbsp;</div>
+        <div id="preferences"></div>
+        <div id="message"></div>
+        <button type="button" id="add">Add Row</button>
+        <button type="button" id="delete">Delete Rows</button>
+        <button type="submit">Save Preferences</button>
+        <button type="button" id="reset">Reset Preferences</button>
+    </form>
+
+    <script src="utils.js"></script>
+    <script src="options.js"></script>
+
+  </body>
+
+</html>

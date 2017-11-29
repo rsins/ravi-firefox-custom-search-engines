@@ -1,0 +1,32 @@
+{
+  "name": "Custom Search Engine",
+  "description" : "To use, type 'ms' plus keyword for custom search engines & search term into the url bar. (e.g. ms google <search text>)",
+  "version": "1.0",
+  "manifest_version": 2,
+
+  "applications": {
+    "gecko": {
+      "strict_min_version": "52.0a1"
+    }
+  },
+
+  "background": {
+    "scripts": [
+    	"utils.js",
+    	"background.js"
+    ]
+  },
+
+  "omnibox": { 
+  	  "keyword" : "ms" 
+  },
+
+  "permissions": [
+  	  "storage"
+  ],
+
+  "options_ui": {
+  	  "page": "options.html"
+  }
+
+}
