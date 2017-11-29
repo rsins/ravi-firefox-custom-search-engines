@@ -13,3 +13,36 @@ const PREFERENCE_FILE_VERSION_MIN = "1.0";
 // Current file version
 const PREFERENCE_FILE_VERSION_CUR = "1.0";
 
+// Url for popular search engines data
+const POPULAR_SEARCH_ENGINE_URL = "";
+
+function getPopularSearchEngineData() {
+	var d = {
+		  "file_version": "1.0",
+		  "preferences": {
+		  	      "custom_engines": {
+		  	      	        "google": {
+		  	      	        	        "name": "Google Search",
+		  	      	        	        "url": "https://www.google.co.in/search?q={searchTerms}",
+		  	      	        	        "description": "Google Search"
+		  	      	        	      },
+		  	      	        "bing": {
+		  	      	        	        "name": "Bing Search",
+		  	      	        	        "url": "https://www.bing.com/search?q={searchTerms}",
+		  	      	        	        "description": "Bing Search"
+		  	      	        	      },
+		  	      	        "yahoo": {
+		  	      	        	        "name": "Yahoo Search",
+		  	      	        	        "url": "https://in.search.yahoo.com/search?q={searchTerms}",
+		  	      	        	        "description": "Yahoo Search"
+		  	      	        	      },
+		  	      	        "duck": {
+		  	      	        	        "name": "Duck Duck Go",
+		  	      	        	        "url": "https://in.search.yahoo.com/search?q={searchTerms}",
+		  	      	        	        "description": "Duck Duck Go"
+		  	      	        	      }
+		  	      	      }
+		  	    }
+	};
+	return JSON.stringify(d);
+}

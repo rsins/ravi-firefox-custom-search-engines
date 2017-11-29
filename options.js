@@ -189,22 +189,11 @@ function loadPreferencesFromFile() {
   resetFields();
   if (curFile) {
     var reader = new FileReader();
-    reader.onload = function(){
+    reader.onload = function() {
       try {
         var prefText = reader.result;
         var filePrefObj = JSON.parse(prefText);
-        if (! filePrefObj.hasOwnProperty(PREFERENCE_FILE_VERSION_TAG) || ! filePrefObj.hasOwnProperty(PREFERENCE_FILE_PREF_TAG)) {
-          displayMessage("Invalid input file format.");
-          return;
-        }
-        var fileVersion = parseFloat(filePrefObj[PREFERENCE_FILE_VERSION_TAG]);
-        var minFileVersionSupported = parseFloat(PREFERENCE_FILE_VERSION_MIN);
-        if (fileVersion < minFileVersionSupported) {
-          displayMessage("Invalid file version - " + fileVersion + ", this format is not supported currently.");
-          return;
-        }
-        parseAndShowCurrentData(filePrefObj[PREFERENCE_FILE_PREF_TAG]);
-        displayMessage("Preferences Loaded from File. Please review & click on 'Save Preferences' to save it.");
+        loadPreferencesFromDataObj(filePrefObj);
       }
       catch (err) {
         console.log(err.message);
@@ -217,6 +206,21 @@ function loadPreferencesFromFile() {
   else {
   	displayMessage("Please select a file to load preference data.", true);
   }
+}
+
+function loadPreferencesFromDataObj(filePrefObj) {
+  if (! filePrefObj.hasOwnProperty(PREFERENCE_FILE_VERSION_TAG) || ! filePrefObj.hasOwnProperty(PREFERENCE_FILE_PREF_TAG)) {
+    displayMessage("Invalid input file format.");
+    return;
+  }
+  var fileVersion = parseFloat(filePrefObj[PREFERENCE_FILE_VERSION_TAG]);
+  var minFileVersionSupported = parseFloat(PREFERENCE_FILE_VERSION_MIN);
+  if (fileVersion < minFileVersionSupported) {
+    displayMessage("Invalid file version - " + fileVersion + ", this format is not supported currently.");
+    return;
+  }
+  parseAndShowCurrentData(filePrefObj[PREFERENCE_FILE_PREF_TAG]);
+  displayMessage("Preferences Loaded from File. Please review & click on 'Save Preferences' to save it.");
 }
 
 function showPreferencesPlainText() {
@@ -250,6 +254,19 @@ function resetFields() {
   document.querySelector("#inputPrefFileButton").value = "";
 }
 
+function loadPopularSearchEngines() {
+  try {
+    var prefText = getPopularSearchEngineData();
+    var filePrefObj = JSON.parse(prefText);
+    loadPreferencesFromDataObj(filePrefObj);
+  }
+  catch (err) {
+    console.log(err.message);
+    displayMessage(`Error while loading data - ${err.message}`, true);
+    return;
+  }
+}
+
 resetFields();
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelector("#delete").addEventListener("click", deletePreferenceRow);
@@ -258,5 +275,6 @@ document.querySelector("#reset").addEventListener("click", resetPreferences);
 document.querySelector("#loadInputPrefFileButton").addEventListener("click", loadPreferencesFromFile);
 document.querySelector("#inputPrefFileButton").addEventListener("click", resetFields);
 document.querySelector("#showPrefDataButton").addEventListener("click", showPreferencesPlainText);
+document.querySelector("#loadPopular").addEventListener("click", loadPopularSearchEngines);
 document.querySelector("form").addEventListener("submit", saveOptions);
 
