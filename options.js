@@ -10,7 +10,8 @@ function saveOptions(e) {
   	  hasAtLeastOneError: false,
       displayMessage: "Errors:<br>",
   	  hasMissingData: false,
-  	  hasDuplicate: false,
+  	  hasDuplicateKey: false,
+  	  hasInvalidKey: false,
   	  hasInvalidUrlProtocol: false,
   	  hasInvalidUrlSearchParam: false
   };
@@ -42,12 +43,21 @@ function saveOptions(e) {
       }
 
     }
+    // Check invalid search keys
+    else if (c1.value.trim().includes(" ")) {
+      c1.style["background-color"] = "#42f4b9";
+      if (! inputError.hasInvalidKey) {
+        inputError.hasAtLeastOneError = true;
+        inputError.hasInvalidKey = true;
+        inputError.displayMessage += "<span style='color: #42f4b9'>* Search Key cannot include space.</span><br>";
+      }
+    }
     // Check duplicate search keys
     else if (prefJson.hasOwnProperty(c1.value.trim())) {
       c1.style["background-color"] = "#dbccff";
-      if (! inputError.hasDuplicate) {
+      if (! inputError.hasDuplicateKey) {
         inputError.hasAtLeastOneError = true;
-        inputError.hasDuplicate = true;
+        inputError.hasDuplicateKey = true;
         inputError.displayMessage += "<span style='color: #dbccff'>* Duplicate search key.</span><br>";
       }
     }
@@ -197,7 +207,6 @@ function loadPreferencesFromFile() {
         displayMessage("Preferences Loaded from File. Please review & click on 'Save Preferences' to save it.");
       }
       catch (err) {
-        console.log(err);
         console.log(err.message);
         displayMessage(`Error while loading data - ${err.message}`, true);
         return;
