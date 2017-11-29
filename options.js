@@ -254,17 +254,20 @@ function resetFields() {
   document.querySelector("#inputPrefFileButton").value = "";
 }
 
+// Load from remote url a default preference data.
 function loadPopularSearchEngines() {
-  try {
-    var prefText = getPopularSearchEngineData();
-    var filePrefObj = JSON.parse(prefText);
-    loadPreferencesFromDataObj(filePrefObj);
-  }
-  catch (err) {
-    console.log(err.message);
-    displayMessage(`Error while loading data - ${err.message}`, true);
-    return;
-  }
+  getPopularSearchEngineData()
+  .then(function(prefText) {
+    try {
+      var filePrefObj = JSON.parse(prefText);
+      loadPreferencesFromDataObj(filePrefObj);
+    }
+    catch (err) {
+      console.log(err.message);
+      displayMessage(`Error while loading data - ${err.message}`, true);
+      return;
+    }
+  });
 }
 
 resetFields();

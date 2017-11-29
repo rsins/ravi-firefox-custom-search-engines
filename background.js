@@ -125,6 +125,7 @@ function main() {
   // Open the page based on how the user clicks on a suggestion.
   browser.omnibox.onInputEntered.addListener((text, disposition) => {
     let url = buildSearchURL(text);
+    if (!url && JSON.stringify(searchEngines) == "{}") browser.runtime.openOptionsPage();
     if (!url) return;
     switch (disposition) {
       case "currentTab":
