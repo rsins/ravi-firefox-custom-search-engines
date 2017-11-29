@@ -22,6 +22,8 @@ function saveOptions(e) {
     var c3 = document.querySelector("#F" + count + "3");
     var c4 = document.querySelector("#F" + count + "4");
 
+	if (c1 == null || c2 == null || c3 == null || c4 == null) continue;
+
 	// Clear color highlights
     c1.style["background-color"] = "";
     c2.style["background-color"] = "";
@@ -29,7 +31,7 @@ function saveOptions(e) {
     c4.style["background-color"] = "";
 
     // Check empty fields.
-    if (c1 == null || c1.value.trim() == "" || c2 == null || c2.value.trim() == "" || c3 == null || c3.value.trim() == "") {
+    if (c1.value.trim() == "" || c2.value.trim() == "" || c3.value.trim() == "") {
       c1.style["background-color"] = "#ffcccc";
       c2.style["background-color"] = "#ffcccc";
       c3.style["background-color"] = "#ffcccc";
@@ -84,9 +86,8 @@ function saveOptions(e) {
     return;
   }
 
-  var prefJsonStr = JSON.stringify(prefJson);
   var prefStorageObj = {};
-  prefStorageObj[SEARCH_PREFERENCE_KEY] = prefJsonStr;
+  prefStorageObj[SEARCH_PREFERENCE_KEY] = prefJson;
   browser.storage.local.set(prefStorageObj);
  
   // Get to background.js and run the load data function for the updated data.
@@ -98,7 +99,7 @@ function saveOptions(e) {
 }
 
 function deletePreferenceRow() {
-  displayMessage("");
+  resetFields();
   for (var count = 1; count <= preferenceRowCount; count++) {
     var chkBox = document.querySelector("#F" + count + "0");
     if (chkBox && chkBox.checked) {
@@ -109,42 +110,51 @@ function deletePreferenceRow() {
 }
 
 function addPreferenceRow() {
-  displayMessage("");
+  resetFields();
   var tabRef = document.querySelector("#preftbody");
   var newRow = tabRef.insertRow(tabRef.rows.length);
   preferenceRowCount += 1;
   newRow.innerHTML = "<td><input id='F" + preferenceRowCount + "0' type='checkbox'/></td><td><input type='text' id='F" + preferenceRowCount + "1'/></td><td><input type='text' id='F" + preferenceRowCount + "2'/></td><td><input type='text' id='F" + preferenceRowCount + "3'/></td><td><input type='text' id='F" + preferenceRowCount + "4'/></td>";
 }
 
-function restoreOptions() {
-
-  function parseCurrentData(result) {
-  	let rowNum = 0;
-    let htmlTable = "<table id='preftable'><tbody id='preftbody'><tr><th>Delete</th><th>Key<span style='color:red'>*</span></th><th>Search Engine Name<span style='color:red'>*</span></th><th>Url<span style='color:red'>*</span></th><th>Description</th></tr>";
-    if (result.hasOwnProperty(SEARCH_PREFERENCE_KEY)) {
-      let preferences = JSON.parse(result[SEARCH_PREFERENCE_KEY]);
-      for (var key in preferences) {
-        let curSearchObj = preferences[key];
-        rowNum += 1;
-        htmlTable += "<tr><td><input id='F" + rowNum + "0' type='checkbox'/></td><td><input type='text' id='F" + rowNum + "1' value='" + key + "'/></td><td><input type='text' id='F" + rowNum + "2' value='" + curSearchObj.name + "'/></td><td><input type='text' id='F" + rowNum + "3' value='" + curSearchObj.url + "'/></td><td><input type='text' id='F" + rowNum + "4' value='" + curSearchObj.description + "'/></td></tr>";
-      }
+function parseAndShowCurrentData(result) {
+  let rowNum = 0;
+  let htmlTable = "<table id='preftable'><tbody id='preftbody'><tr><th><input id='F00' type='checkbox'/> Delete</th><th>Key<span style='color:red'>*</span></th><th>Search Engine Name<span style='color:red'>*</span></th><th>Url<span style='color:red'>*</span></th><th>Description</th></tr>";
+  if (result.hasOwnProperty(SEARCH_PREFERENCE_KEY)) {
+    let preferences = result[SEARCH_PREFERENCE_KEY];
+    for (var key in preferences) {
+      let curSearchObj = preferences[key];
+      rowNum += 1;
+      htmlTable += "<tr><td><input id='F" + rowNum + "0' type='checkbox'/></td><td><input type='text' id='F" + rowNum + "1' value='" + key + "'/></td><td><input type='text' id='F" + rowNum + "2' value='" + curSearchObj.name + "'/></td><td><input type='text' id='F" + rowNum + "3' value='" + curSearchObj.url + "'/></td><td><input type='text' id='F" + rowNum + "4' value='" + curSearchObj.description + "'/></td></tr>";
     }
-    if (rowNum == 0) {
-        rowNum += 1;
-        htmlTable += "<tr><td><input id='F" + rowNum + "0' type='checkbox'/></td><td><input type='text' id='F" + rowNum + "1' value=''/></td><td><input type='text' id='F" + rowNum + "2' value=''/></td><td><input type='text' id='F" + rowNum + "3' value=''/></td><td><input type='text' id='F" + rowNum + "4' value=''/></td></tr>";
-    }
-    htmlTable += "</tbody></table>";
-    document.querySelector("#preferences").innerHTML = htmlTable;
-
-	preferenceRowCount = rowNum;
   }
+  if (rowNum == 0) {
+      rowNum += 1;
+      htmlTable += "<tr><td><input id='F" + rowNum + "0' type='checkbox'/></td><td><input type='text' id='F" + rowNum + "1' value=''/></td><td><input type='text' id='F" + rowNum + "2' value=''/></td><td><input type='text' id='F" + rowNum + "3' value=''/></td><td><input type='text' id='F" + rowNum + "4' value=''/></td></tr>";
+  }
+  htmlTable += "</tbody></table>";
+  document.querySelector("#preferences").innerHTML = htmlTable;
+
+  preferenceRowCount = rowNum;
+  document.querySelector("#F00").addEventListener("click", selectAllDeletePreferenceRow);
+}
+
+function restoreOptions() {
 
   function onError(error) {
     console.log(`Error: ${error}`);
   }
 
   var getting = browser.storage.local.get(SEARCH_PREFERENCE_KEY);
-  getting.then(parseCurrentData, onError);
+  getting.then(parseAndShowCurrentData, onError);
+}
+
+function selectAllDeletePreferenceRow() {
+  var chkBoxMain = document.querySelector("#F00");
+  for (var count = 1; count <= preferenceRowCount; count++) {
+    var chkBox = document.querySelector("#F" + count + "0");
+    if (chkBox) chkBox.checked = chkBoxMain.checked;
+  }
 }
 
 function resetPreferences() {
@@ -163,10 +173,81 @@ function displayMessage(text, isError = false) {
   }
 }
 
-displayMessage("");
+function loadPreferencesFromFile() {
+  var inputPrefFile = document.querySelector("#inputPrefFileButton");
+  var curFile = inputPrefFile.files[0];
+  resetFields();
+  if (curFile) {
+    var reader = new FileReader();
+    reader.onload = function(){
+      try {
+        var prefText = reader.result;
+        var filePrefObj = JSON.parse(prefText);
+        if (! filePrefObj.hasOwnProperty(PREFERENCE_FILE_VERSION_TAG) || ! filePrefObj.hasOwnProperty(PREFERENCE_FILE_PREF_TAG)) {
+          displayMessage("Invalid input file format.");
+          return;
+        }
+        var fileVersion = parseFloat(filePrefObj[PREFERENCE_FILE_VERSION_TAG]);
+        var minFileVersionSupported = parseFloat(PREFERENCE_FILE_VERSION_MIN);
+        if (fileVersion < minFileVersionSupported) {
+          displayMessage("Invalid file version - " + fileVersion + ", this format is not supported currently.");
+          return;
+        }
+        parseAndShowCurrentData(filePrefObj[PREFERENCE_FILE_PREF_TAG]);
+        displayMessage("Preferences Loaded from File. Please review & click on 'Save Preferences' to save it.");
+      }
+      catch (err) {
+        console.log(err);
+        console.log(err.message);
+        displayMessage(`Error while loading data - ${err.message}`, true);
+        return;
+      }
+    };
+    reader.readAsText(curFile);
+  }
+  else {
+  	displayMessage("Please select a file to load preference data.", true);
+  }
+}
+
+function showPreferencesPlainText() {
+
+  function loadData(result) {
+    if (result) {
+      var filePref = {};
+      filePref[PREFERENCE_FILE_VERSION_TAG] = PREFERENCE_FILE_VERSION_CUR;
+      filePref[PREFERENCE_FILE_PREF_TAG] = result;
+      outputArea.value = JSON.stringify(filePref, null, 2);
+    }
+    else {
+      outputArea.value = "** No Preferences Stored **";
+    }
+  }
+
+  function onError(error) {
+    console.log(`Error: ${error}`);
+  }
+
+  resetFields();
+  var outputArea = document.querySelector("#outputPrefFile");
+  outputArea.style["display"] = "block";
+  var getting = browser.storage.local.get(SEARCH_PREFERENCE_KEY);
+  getting.then(loadData, onError);
+}
+
+function resetFields() {
+  displayMessage("");
+  document.querySelector("#outputPrefFile").style["display"] = "none";
+  document.querySelector("#inputPrefFileButton").value = "";
+}
+
+resetFields();
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelector("#delete").addEventListener("click", deletePreferenceRow);
 document.querySelector("#add").addEventListener("click", addPreferenceRow);
 document.querySelector("#reset").addEventListener("click", resetPreferences);
+document.querySelector("#loadInputPrefFileButton").addEventListener("click", loadPreferencesFromFile);
+document.querySelector("#inputPrefFileButton").addEventListener("click", resetFields);
+document.querySelector("#showPrefDataButton").addEventListener("click", showPreferencesPlainText);
 document.querySelector("form").addEventListener("submit", saveOptions);
 

@@ -20,7 +20,7 @@
 		    background-color: #dddddd;
 		}
 
-		button {
+		button, input[type="file"] {
 			height: 25px;
 		}
 	</style>
@@ -36,6 +36,17 @@
         <button type="button" id="delete">Delete Rows</button>
         <button type="submit">Save Preferences</button>
         <button type="button" id="reset">Reset Preferences</button>
+        <div>
+          <br>
+          <lable style="font-weight: bold">Load From File: <input type="file" id="inputPrefFileButton"/></lable>
+          <button type="button" id="loadInputPrefFileButton">Read & Load from File</button>
+          <br>
+          <br>
+          <lable style="font-weight: bold">Show Saved Preference Text which can be store to file:
+          <button type="button" id="showPrefDataButton">Show Pref Data</button>
+          <br>
+          <textarea readOnly=true style='display:none; width: 500px; height: 200px;' id="outputPrefFile"></textarea></lable>
+        </div>
     </form>
 
     <script src="utils.js"></script>

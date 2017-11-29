@@ -16,6 +16,7 @@ function splitInputTextForSearch(text) {
   return result;
 }
 
+// Set plugin default description based on loaded preferences data
 function setSearchEngineDescription() {
   let eNames = null;
   for (var key in searchEngines) {
@@ -29,6 +30,7 @@ function setSearchEngineDescription() {
   }
 }
 
+// Get search suggessions based on user input
 function getSearchEngineSuggessions(text) {
   let input = splitInputTextForSearch(text);
   let suggessions = [];
@@ -59,6 +61,7 @@ function getSearchEngineSuggessions(text) {
   return suggessions;
 }
 
+// Build Search Url based on user input
 function buildSearchURL(text) {
   if (text.toLowerCase().startsWith("http://") || text.toLowerCase().startsWith("https://")) return `${text}`;
   let input = splitInputTextForSearch(text);
@@ -84,14 +87,7 @@ function buildSearchURL(text) {
   return null;
 }
 
-function onError(error) {
-  console.log(`Error: ${error}`);
-}
-
-function onGot(item) {
-  if (item[SEARCH_PREFERENCE_KEY]) searchEngines = JSON.parse(item[SEARCH_PREFERENCE_KEY]);
-}
-
+// Plugin init function
 function pluginLoadData() {
   // Read preferences
   getSearchEnginesFromPreferences();
@@ -103,11 +99,21 @@ function pluginLoadData() {
   });
 }
 
+function onError(error) {
+  console.log(`Error: ${error}`);
+}
+
+function onGot(item) {
+  if (item[SEARCH_PREFERENCE_KEY]) searchEngines = item[SEARCH_PREFERENCE_KEY];
+}
+
+// Read preferences from storage
 function getSearchEnginesFromPreferences() {
   var preferences = browser.storage.local.get(SEARCH_PREFERENCE_KEY);
   preferences.then(onGot, onError);
 }
 
+// Mani function which loads the plugin functionality
 function main() {
   pluginLoadData();
   
