@@ -10,6 +10,7 @@
 
   "applications": {
     "gecko": {
+      "id": "custom-search-engine@rsins.addons.mozilla.org",
       "strict_min_version": "52.0a1"
     }
   },
