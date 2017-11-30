@@ -24,15 +24,20 @@ function saveOptions(e) {
     var c4 = document.querySelector("#F" + count + "4");
 
 	if (c1 == null || c2 == null || c3 == null || c4 == null) continue;
-
+    
 	// Clear color highlights
     c1.style["background-color"] = "";
     c2.style["background-color"] = "";
     c3.style["background-color"] = "";
     c4.style["background-color"] = "";
 
+    // Corner case
+    if (preferenceRowCount == 1 && c1.value.trim() == "" || c2.value.trim() == "" || c3.value.trim() == "" || c4.value.trim() == "") {
+       // Do nothing.
+       console.log("One input row but no data to save.");
+    }
     // Check empty fields.
-    if (c1.value.trim() == "" || c2.value.trim() == "" || c3.value.trim() == "") {
+    else if (c1.value.trim() == "" || c2.value.trim() == "" || c3.value.trim() == "") {
       c1.style["background-color"] = "#ffcccc";
       c2.style["background-color"] = "#ffcccc";
       c3.style["background-color"] = "#ffcccc";
@@ -109,7 +114,6 @@ function saveOptions(e) {
 }
 
 function deletePreferenceRow() {
-  resetFields();
   for (var count = 1; count <= preferenceRowCount; count++) {
     var chkBox = document.querySelector("#F" + count + "0");
     if (chkBox && chkBox.checked) {
@@ -117,6 +121,17 @@ function deletePreferenceRow() {
       rowElement.parentElement.removeChild(rowElement);
     }
   }
+
+  resetFields();
+  displayMessage("Row(s) deleted.");
+
+  // Check if there are any preference row existing or not.
+  var hasRow = false;
+  for (var count = 1; count <= preferenceRowCount && hasRow == false; count++) {
+    var chkBox = document.querySelector("#F" + count + "0");
+    if (chkBox) hasRow = true;
+  }
+  if (! hasRow) parseAndShowCurrentData({});
 }
 
 function addPreferenceRow() {
@@ -253,6 +268,11 @@ function resetFields() {
   displayMessage("");
   document.querySelector("#outputPrefFileBlock").style["display"] = "none";
   document.querySelector("#inputPrefFileButton").value = "";
+  var chkBoxMain = document.querySelector("#F00");
+  if (chkBoxMain) {
+    chkBoxMain.checked = false;
+    selectAllDeletePreferenceRow();
+  }
 }
 
 // Load from remote url a default preference data.
