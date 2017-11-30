@@ -1,11 +1,13 @@
 {
   "name": "Custom Search Engine",
+  "short_name": "Custom Search Engine",
   "description" : "To use, type 'ms' plus keyword for custom search engines & search term into the url bar. (e.g. ms google <search text>)",
   "version": "1.0",
   "manifest_version": 2,
 
   "icons": {
-    "48": "icons/icon48.png"
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
 
   "applications": {
