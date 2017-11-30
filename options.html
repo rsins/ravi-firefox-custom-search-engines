@@ -40,17 +40,22 @@
         <div>
           <br>
           <lable style="font-weight: bold">Load From File: <input type="file" id="inputPrefFileButton"/></lable>
-          <button type="button" id="loadInputPrefFileButton">Read & Load from File</button>
+          <button type="button" id="loadInputPrefFileButton">Load from File</button>
           <br>
           <br>
           <lable style="font-weight: bold">Show Saved Preference Text which can be store to file:
-          <button type="button" id="showPrefDataButton">Show Pref Data</button>
-          <br>
-          <textarea readOnly=true style='display:none; width: 500px; height: 200px;' id="outputPrefFile"></textarea></lable>
+            <button type="button" id="showPrefDataButton">Show Pref Data</button>
+          </label>
+          <div id="outputPrefFileBlock" style="font-weight: normal; font-style: italic">
+          	Click on the text area then press Ctrl-A (or Cmd-A) to select all, Ctrl-C (or Cmd-C) to copy.
+          	<br>
+          	<textarea readOnly=true style='width: 550px; height: 200px;' id="outputPrefFile"></textarea>
+          </div>
         </div>
     </form>
 
     <script src="utils.js"></script>
+    <script src="browser-polyfill.min.js"></script>
     <script src="options.js"></script>
 
   </body>

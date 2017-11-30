@@ -168,6 +168,7 @@ function selectAllDeletePreferenceRow() {
 }
 
 function resetPreferences() {
+  resetFields();
   restoreOptions();
   displayMessage("Preferences Reset!");
 }
@@ -224,6 +225,7 @@ function loadPreferencesFromDataObj(filePrefObj) {
 }
 
 function showPreferencesPlainText() {
+  var outputArea = document.querySelector("#outputPrefFile");
 
   function loadData(result) {
     if (result) {
@@ -242,15 +244,14 @@ function showPreferencesPlainText() {
   }
 
   resetFields();
-  var outputArea = document.querySelector("#outputPrefFile");
-  outputArea.style["display"] = "block";
+  document.querySelector("#outputPrefFileBlock").style["display"] = "block";
   var getting = browser.storage.local.get(SEARCH_PREFERENCE_KEY);
   getting.then(loadData, onError);
 }
 
 function resetFields() {
   displayMessage("");
-  document.querySelector("#outputPrefFile").style["display"] = "none";
+  document.querySelector("#outputPrefFileBlock").style["display"] = "none";
   document.querySelector("#inputPrefFileButton").value = "";
 }
 

@@ -19,7 +19,7 @@
       },
       "duck": {
         "name": "Duck Duck Go",
-        "url": "https://in.search.yahoo.com/search?q={searchTerms}",
+        "url": "https://duckduckgo.com/?q={searchTerms}",
         "description": "Duck Duck Go"
       }
     }
