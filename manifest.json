@@ -2,7 +2,7 @@
   "name": "Custom Search Engine",
   "short_name": "Custom Search Engine",
   "description" : "To use, type 'ms' plus keyword for custom search engines & search term into the url bar. (e.g. ms google <search text>)",
-  "version": "1.0",
+  "version": "1.2",
   "manifest_version": 2,
 
   "icons": {
@@ -12,7 +12,7 @@
 
   "applications": {
     "gecko": {
-      "id": "custom-search-engine@rsins.addons.browsers.org",
+      "id": "custom-search-engine@rsins.addons.mozilla.org",
       "strict_min_version": "52.0a1"
     }
   },
@@ -34,7 +34,8 @@
   ],
 
   "options_ui": {
-  	  "page": "options.html"
+  	  "page": "options.html",
+  	  "open_in_tab": false
   }
 
 }

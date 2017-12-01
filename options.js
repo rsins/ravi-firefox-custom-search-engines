@@ -144,7 +144,7 @@ function addPreferenceRow() {
 
 function parseAndShowCurrentData(result) {
   let rowNum = 0;
-  let htmlTable = "<table id='preftable'><tbody id='preftbody'><tr><th><input id='F00' type='checkbox'/> Delete</th><th>Key<span style='color:red'>*</span></th><th>Search Engine Name<span style='color:red'>*</span></th><th>Url<span style='color:red'>*</span></th><th>Description</th></tr>";
+  let htmlTable = "<table id='preftable'><tbody id='preftbody'><tr><th style='width:80px; min-width:80px'><input id='F00' type='checkbox'/> Delete</th><th style='width:100px; min-width:100px'>Key<span style='color:red'>*</span></th><th style='width:200px; min-width:200px'>Search Engine Name<span style='color:red'>*</span></th><th style='min-width:300px'>Url<span style='color:red'>*</span></th><th style='width:200px; min-width:200px'>Description</th></tr>";
   if (result.hasOwnProperty(SEARCH_PREFERENCE_KEY)) {
     let preferences = result[SEARCH_PREFERENCE_KEY];
     for (var key in preferences) {
@@ -210,6 +210,7 @@ function loadPreferencesFromFile() {
         var prefText = reader.result;
         var filePrefObj = JSON.parse(prefText);
         loadPreferencesFromDataObj(filePrefObj);
+        displayMessage("Preferences Loaded from File. Please review & click on 'Save Preferences' to save it.");
       }
       catch (err) {
         console.log(err.message);
@@ -235,8 +236,45 @@ function loadPreferencesFromDataObj(filePrefObj) {
     displayMessage("Invalid file version - " + fileVersion + ", this format is not supported currently.");
     return;
   }
-  parseAndShowCurrentData(filePrefObj[PREFERENCE_FILE_PREF_TAG]);
-  displayMessage("Preferences Loaded from File. Please review & click on 'Save Preferences' to save it.");
+  var mergedPref = mergeOnScreenPrefAndFileData(filePrefObj[PREFERENCE_FILE_PREF_TAG]);
+  parseAndShowCurrentData(mergedPref);
+}
+
+function mergeOnScreenPrefAndFileData(filePrefs) {
+  if (! filePrefs.hasOwnProperty(SEARCH_PREFERENCE_KEY)) throw new Error("Invalid File Format.");
+  var prefs = filePrefs[SEARCH_PREFERENCE_KEY];
+
+  // Prepare data for merging.
+  for (var count = 1; count <= preferenceRowCount; count++) {
+    var c1 = document.querySelector("#F" + count + "1");
+    var c2 = document.querySelector("#F" + count + "2");
+    var c3 = document.querySelector("#F" + count + "3");
+    var c4 = document.querySelector("#F" + count + "4");
+
+	if (c1 == null || c2 == null || c3 == null || c4 == null) continue;
+    
+	// Clear color highlights
+    c1.style["background-color"] = "";
+    c2.style["background-color"] = "";
+    c3.style["background-color"] = "";
+    c4.style["background-color"] = "";
+
+    var key = c1.value.trim();
+    var name = c2.value.trim();
+    var url = c3.value.trim();
+    var desc = c4.value.trim();
+
+	// If UI Pref Key is present in file data then ignore UI data
+    if (key == "" || prefs.hasOwnProperty(key)) continue;
+
+    prefs[key] = {
+      "name": name,
+      "url": url,
+      "description": desc
+    };
+  };
+
+  return filePrefs;
 }
 
 function showPreferencesPlainText() {
@@ -258,14 +296,23 @@ function showPreferencesPlainText() {
     console.log(`Error: ${error}`);
   }
 
+  var hasToHideField = false;
+  if (document.querySelector("#outputPrefFileBlock").style["display"] == "block") {
+    hasToHideField = true;
+  }
   resetFields();
-  document.querySelector("#outputPrefFileBlock").style["display"] = "block";
-  var getting = browser.storage.local.get(SEARCH_PREFERENCE_KEY);
-  getting.then(loadData, onError);
+  if (! hasToHideField) {
+    document.querySelector("#showPrefDataButton").innerText = "Hide Pref Data";
+    document.querySelector("#outputPrefFileBlock").style["display"] = "block";
+    var getting = browser.storage.local.get(SEARCH_PREFERENCE_KEY);
+    getting.then(loadData, onError);
+  }
+
 }
 
 function resetFields() {
   displayMessage("");
+  document.querySelector("#showPrefDataButton").innerText = "Show Pref Data";
   document.querySelector("#outputPrefFileBlock").style["display"] = "none";
   document.querySelector("#inputPrefFileButton").value = "";
   var chkBoxMain = document.querySelector("#F00");
@@ -277,14 +324,17 @@ function resetFields() {
 
 // Load from remote url a default preference data.
 function loadPopularSearchEngines() {
+  resetFields();
   getPopularSearchEngineData()
   .then(function(prefText) {
     try {
       var filePrefObj = JSON.parse(prefText);
       loadPreferencesFromDataObj(filePrefObj);
+      displayMessage("Popular Search Engines loaded. Please review & click on 'Save Preferences' to save it.");
     }
     catch (err) {
-      console.log(err.message);
+      console.log(`Error: ${err}`);
+      console.log(err.stack);
       displayMessage(`Error while loading data - ${err.message}`, true);
       return;
     }
