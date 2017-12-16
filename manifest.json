@@ -30,6 +30,7 @@
   },
 
   "permissions": [
+      "https://raw.githubusercontent.com/rsins/ravi-firefox-custom-search-engines/master/SampleCustomEngines/PopularSearchEngines.txt",
   	  "storage"
   ],
 
