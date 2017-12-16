@@ -75,13 +75,37 @@ function saveOptions(e) {
         inputError.displayMessage += "<span style='color: #fbccff'>* URL should start with 'http://' or 'https://'.</span><br>";
       }
     }
-    // Check url search parameter
-    else if (! c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER)) {
+    // Check url search parameter, handle split word searches as well.
+    else if (
+    	    (! c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER  ) &&
+    		 ! c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_0) &&
+    		 ! c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_1) &&
+    		 ! c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_2) &&
+    		 ! c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_3) &&
+    		 ! c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_4) &&
+    		 ! c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_5) &&
+    		 ! c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_6) &&
+    		 ! c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_7) &&
+    		 ! c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_8) &&
+    		 ! c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_9) )
+    	||
+    	    (  c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER  ) &&
+    		  (c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_0) ||
+    		   c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_1) ||
+    		   c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_2) ||
+    		   c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_3) ||
+    		   c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_4) ||
+    		   c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_5) ||
+    		   c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_6) ||
+    		   c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_7) ||
+    		   c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_8) ||
+    		   c3.value.trim().includes(SEARCH_TEXT_PLACEHOLDER_9) ))
+    ) {
       c3.style["background-color"] = "#ccd2ff";
       if (! inputError.hasInvalidUrlSearchParam) {
         inputError.hasAtLeastOneError = true;
         inputError.hasInvalidUrlSearchParam = true;
-        inputError.displayMessage += "<span style='color: #ccd2ff'>* URL should have " + SEARCH_TEXT_PLACEHOLDER + " somewhere in the search url for query text placeholder.</span><br>";
+        inputError.displayMessage += "<span style='color: #ccd2ff'>* URL must contain either {searchTerms} or {searchTerms[x]} where x can range from 0 to 9.</span><br>";
       }
     }
     else {

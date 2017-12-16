@@ -68,7 +68,13 @@ function buildSearchURL(text) {
   let searchEngObj = searchEngines[input.searchEngine];
   if (searchEngObj) {
   	let searchUrl = searchEngObj.url;
-    let url = searchUrl.replace(SEARCH_TEXT_PLACEHOLDER, input.queryText);
+  	let url = null;
+  	if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER)) {
+      url = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER, input.queryText);
+    }
+    else {
+      url = buildUrlForSplitWordSearch(searchUrl, input.queryText);
+    }
     return `${url}`;
   }
   else {
@@ -85,6 +91,130 @@ function buildSearchURL(text) {
   }
 
   return null;
+}
+
+function strReplaceAll(str, toReplace, replacement) {
+  return str.split(toReplace).join(replacement);
+}
+
+function buildUrlForSplitWordSearch(searchUrl, fullQueryText) {
+  // Will contain all the remaining words if plaeholder count is less than query words.
+  var lastQueryText = ""; 
+  // Will contain the final split of query text words based on how many search tags are present in URL.
+  var queryText = [];
+  var parts = fullQueryText.split(" ");
+  var count = 0;
+  // Start preparing the list of query words
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_0)) {
+    if (parts.length > count) queryText.push(parts[count]);
+    else queryText.push("");
+    count += 1;
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_1)) {
+    if (parts.length > count) queryText.push(parts[count]);
+    else queryText.push("");
+    count += 1;
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_2)) {
+    if (parts.length > count) queryText.push(parts[count]);
+    else queryText.push("");
+    count += 1;
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_3)) {
+    if (parts.length > count) queryText.push(parts[count]);
+    else queryText.push("");
+    count += 1;
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_4)) {
+    if (parts.length > count) queryText.push(parts[count]);
+    else queryText.push("");
+    count += 1;
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_5)) {
+    if (parts.length > count) queryText.push(parts[count]);
+    else queryText.push("");
+    count += 1;
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_6)) {
+    if (parts.length > count) queryText.push(parts[count]);
+    else queryText.push("");
+    count += 1;
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_7)) {
+    if (parts.length > count) queryText.push(parts[count]);
+    else queryText.push("");
+    count += 1;
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_8)) {
+    if (parts.length > count) queryText.push(parts[count]);
+    else queryText.push("");
+    count += 1;
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_9)) {
+    if (parts.length > count) queryText.push(parts[count]);
+    else queryText.push("");
+    count += 1;
+  }
+
+  // If query words are more than search tags, last tag will get the remaining search words.
+  if (count < parts.length) {
+    for (var i = 1; i < count; i++) parts.shift();
+    lastQueryText = parts.join(" ");
+  }
+  count = 0;
+  // Start backword for search tag replacement in URL.
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_9)) {
+    count += 1;
+    if (lastQueryText != "" && count == 1) searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_9, lastQueryText);
+    else searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_9, queryText[queryText.length - count]);
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_8)) {
+    count += 1;
+    if (lastQueryText != "" && count == 1) searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_8, lastQueryText);
+    else searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_8, queryText[queryText.length - count]);
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_7)) {
+    count += 1;
+    if (lastQueryText != "" && count == 1) searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_7, lastQueryText);
+    else searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_7, queryText[queryText.length - count]);
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_6)) {
+    count += 1;
+    if (lastQueryText != "" && count == 1) searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_6, lastQueryText);
+    else searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_6, queryText[queryText.length - count]);
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_5)) {
+    count += 1;
+    if (lastQueryText != "" && count == 1) searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_5, lastQueryText);
+    else searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_5, queryText[queryText.length - count]);
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_4)) {
+    count += 1;
+    if (lastQueryText != "" && count == 1) searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_4, lastQueryText);
+    else searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_4, queryText[queryText.length - count]);
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_3)) {
+    count += 1;
+    if (lastQueryText != "" && count == 1) searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_3, lastQueryText);
+    else searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_3, queryText[queryText.length - count]);
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_2)) {
+    count += 1;
+    if (lastQueryText != "" && count == 1) searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_2, lastQueryText);
+    else searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_2, queryText[queryText.length - count]);
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_1)) {
+    count += 1;
+    if (lastQueryText != "" && count == 1) searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_1, lastQueryText);
+    else searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_1, queryText[queryText.length - count]);
+  }
+  if (searchUrl.includes(SEARCH_TEXT_PLACEHOLDER_0)) {
+    count += 1;
+    if (lastQueryText != "" && count == 1) searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_0, lastQueryText);
+    else searchUrl = strReplaceAll(searchUrl, SEARCH_TEXT_PLACEHOLDER_0, queryText[queryText.length - count]);
+  }
+
+  return searchUrl;
 }
 
 // Plugin init function

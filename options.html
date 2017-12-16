@@ -4,6 +4,11 @@
   <head>
     <meta charset="utf-8">
 	<style>
+        form {
+	        text-align: left;
+	        width: 100%;
+        }
+
 		table {
 		    font-family: arial, sans-serif;
 		    border-collapse: collapse;
@@ -32,8 +37,10 @@
 
   <body>
 
+	<div style="margin:0 auto;width:1000px;text-align:center">
     <form>
-    	<div>Enter your search engine details for custom search engine plugin below:<br>&nbsp;</div>
+    	<h1><img style="vertical-align:middle" src="icons/icon48.png"></img> Custom Search Engine Options</h1>
+    	<div><h3>Enter your search engine details for custom search engine plugin below:</h3>Search Url must contain either {searchTerms} or {searchTerms[x]} where x can range from 0 to 9 in any order or any number of times.<br>&nbsp;</div>
         <div id="preferences"></div>
         <div id="message"></div>
         <div id="buttonsBlock" style="width:700px">
@@ -61,6 +68,7 @@
           </div>
         </div>
     </form>
+	</div>
 
     <script src="utils.js"></script>
     <script src="browser-polyfill.min.js"></script>
