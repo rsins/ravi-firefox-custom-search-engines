@@ -32,7 +32,7 @@ function saveOptions(e) {
     c4.style["background-color"] = "";
 
     // Corner case
-    if (preferenceRowCount == 1 && c1.value.trim() == "" || c2.value.trim() == "" || c3.value.trim() == "" || c4.value.trim() == "") {
+    if (preferenceRowCount == 1 && c1.value.trim() == "" && c2.value.trim() == "" && c3.value.trim() == "" && c4.value.trim() == "") {
        // Do nothing.
        console.log("One input row but no data to save.");
     }
