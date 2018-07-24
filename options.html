@@ -3,44 +3,20 @@
 <html>
   <head>
     <meta charset="utf-8">
-	<style>
-        form {
-	        text-align: left;
-	        width: 100%;
-        }
-
-		table {
-		    font-family: arial, sans-serif;
-		    border-collapse: collapse;
-		    width: 100%;
-		}
-		
-		td, th {
-		    border: 1px solid #dddddd;
-		    text-align: left;
-		    padding: 8px;
-		}
-		
-		tr:nth-child(even) {
-		    background-color: #dddddd;
-		}
-
-		button, input[type="file"] {
-			height: 25px;
-		}
-
-		input[type="text"] {
-        	width: 100%;
-		}
-	</style>
+    <link rel="stylesheet" href="options.css">
   </head>
 
   <body>
 
-	<div style="margin:0 auto;width:1000px;text-align:center">
-    <form>
-    	<h1><img style="vertical-align:middle" src="icons/icon48.png"></img> Custom Search Engine Options</h1>
-    	<div><h3>Enter your search engine details for custom search engine plugin below:</h3>Search Url must contain either {searchTerms} or {searchTerms[x]} where x can range from 0 to 9 in any order or any number of times.<br>&nbsp;</div>
+  	<div style="margin:0 auto;width:1000px;text-align:center">
+      <form>
+      	<h1><img style="vertical-align:middle" src="icons/icon48.png"></img> Custom Search Engine Options</h1>
+      	<div><h3>Enter your search engine details for custom search engine plugin below:</h3>
+             Search Url must contain either {searchTerms} or {searchTerms[x]} where x can range from 0 to 9 in any order or any number of times.
+             <br>By default multi-search is enabled but if search key contains ',' character then multi-search will automatically be disabled.
+             <br>&nbsp;
+             <br>Click on column name to sort.
+        </div>
         <div id="preferences"></div>
         <div id="message"></div>
         <div id="buttonsBlock" style="width:700px">
@@ -64,13 +40,14 @@
           <div id="outputPrefFileBlock" style="font-weight: normal; font-style: italic">
           	Click on the text area then press Ctrl-A (or Cmd-A) to select all, Ctrl-C (or Cmd-C) to copy.
           	<br>
-          	<textarea readOnly=true style='width: 700px; height: 200px;' id="outputPrefFile"></textarea>
+          	<textarea readOnly=true style='width: 100%; height: 300px;' id="outputPrefFile"></textarea>
           </div>
         </div>
-    </form>
-	</div>
+      </form>
+    </div>
 
     <script src="utils.js"></script>
+    <script src="modal.js"></script>
     <script src="browser-polyfill.min.js"></script>
     <script src="options.js"></script>
 

@@ -2,6 +2,14 @@
 // This is to help with id tags of elements.
 let preferenceRowCount = 0;
 
+// Internal flag to disable search using multiple search engines
+// It is set to false automatically if any of the custom search engine key has CHAR_SEPARATOR_FOR_MULTI_SEARCH as per definition in utils.js
+let multiSearchDisabled = null
+
+// To store sort order of table columns
+let sortOrderOfPrefColById = {}
+
+
 function saveOptions(e) {
   e.preventDefault();
   deletePreferenceRow();
@@ -15,6 +23,7 @@ function saveOptions(e) {
   	  hasInvalidUrlProtocol: false,
   	  hasInvalidUrlSearchParam: false
   };
+  multiSearchDisabled = false;
   var prefJson = {};
   // Prepare data for saving and also do validations.
   for (var count = 1; count <= preferenceRowCount; count++) {
@@ -23,9 +32,9 @@ function saveOptions(e) {
     var c3 = document.querySelector("#F" + count + "3");
     var c4 = document.querySelector("#F" + count + "4");
 
-	if (c1 == null || c2 == null || c3 == null || c4 == null) continue;
-    
-	// Clear color highlights
+	  if (c1 == null || c2 == null || c3 == null || c4 == null) continue;
+
+	  // Clear color highlights
     c1.style["background-color"] = "";
     c2.style["background-color"] = "";
     c3.style["background-color"] = "";
@@ -44,7 +53,7 @@ function saveOptions(e) {
       if (! inputError.hasMissingData) {
         inputError.hasAtLeastOneError = true;
         inputError.hasMissingData = true;
-        inputError.displayMessage += "<span style='color: #ffcccc'>* All mandatory details should be provided.</span><br>";
+        inputError.displayMessage += "* <span style='background-color: #ffcccc'>&nbsp;&nbsp;&nbsp;&nbsp;</span> All mandatory details should be provided.<br>";
       }
 
     }
@@ -54,7 +63,7 @@ function saveOptions(e) {
       if (! inputError.hasInvalidKey) {
         inputError.hasAtLeastOneError = true;
         inputError.hasInvalidKey = true;
-        inputError.displayMessage += "<span style='color: #42f4b9'>* Search Key cannot include space.</span><br>";
+        inputError.displayMessage += "* <span style='background-color: #42f4b9'>&nbsp;&nbsp;&nbsp;&nbsp;</span> Search Key cannot include space.</span><br>";
       }
     }
     // Check duplicate search keys
@@ -63,7 +72,7 @@ function saveOptions(e) {
       if (! inputError.hasDuplicateKey) {
         inputError.hasAtLeastOneError = true;
         inputError.hasDuplicateKey = true;
-        inputError.displayMessage += "<span style='color: #dbccff'>* Duplicate search key.</span><br>";
+        inputError.displayMessage += "* <span style='background-color: #dbccff'>&nbsp;&nbsp;&nbsp;&nbsp;</span> Duplicate search key.</span><br>";
       }
     }
     // Check url protocol
@@ -72,7 +81,7 @@ function saveOptions(e) {
       if (! inputError.hasInvalidUrlProtocol) {
         inputError.hasAtLeastOneError = true;
         inputError.hasInvalidUrlProtocol = true;
-        inputError.displayMessage += "<span style='color: #fbccff'>* URL should start with 'http://' or 'https://'.</span><br>";
+        inputError.displayMessage += "* <span style='background-color: #fbccff'>&nbsp;&nbsp;&nbsp;&nbsp;</span> URL should start with 'http://' or 'https://'.</span><br>";
       }
     }
     // Check url search parameter, handle split word searches as well.
@@ -105,7 +114,7 @@ function saveOptions(e) {
       if (! inputError.hasInvalidUrlSearchParam) {
         inputError.hasAtLeastOneError = true;
         inputError.hasInvalidUrlSearchParam = true;
-        inputError.displayMessage += "<span style='color: #ccd2ff'>* URL must contain either {searchTerms} or {searchTerms[x]} where x can range from 0 to 9.</span><br>";
+        inputError.displayMessage += "* <span style='background-color: #ccd2ff'>&nbsp;&nbsp;&nbsp;&nbsp;</span> URL must contain either {searchTerms} or {searchTerms[x]} where x can range from 0 to 9.</span><br>";
       }
     }
     else {
@@ -118,6 +127,7 @@ function saveOptions(e) {
       	  "url": url,
       	  "description": desc
       };
+      if (key.includes(CHAR_SEPARATOR_FOR_MULTI_SEARCH)) multiSearchDisabled = true;
     }
   }
   if (inputError.hasAtLeastOneError) {
@@ -128,13 +138,13 @@ function saveOptions(e) {
   var prefStorageObj = {};
   prefStorageObj[SEARCH_PREFERENCE_KEY] = prefJson;
   browser.storage.local.set(prefStorageObj);
- 
+
   // Get to background.js and run the load data function for the updated data.
   let backgroundPage = browser.extension.getBackgroundPage();
   backgroundPage.pluginLoadData();
 
   restoreOptions();
-  displayMessage("Preferences Saved!");
+  displayMessage("Preferences Saved!" + (multiSearchDisabled ? "<br><span style='color: brown'>Note: At least one key contains '" + CHAR_SEPARATOR_FOR_MULTI_SEARCH + "' so multi-search will be disabled.</span>" : ""));
 }
 
 function deletePreferenceRow() {
@@ -147,7 +157,7 @@ function deletePreferenceRow() {
   }
 
   resetFields();
-  displayMessage("Row(s) deleted.");
+  displayMessage("Row(s) deleted. Click on 'Save Preferences' to save.");
 
   // Check if there are any preference row existing or not.
   var hasRow = false;
@@ -168,7 +178,7 @@ function addPreferenceRow() {
 
 function parseAndShowCurrentData(result) {
   let rowNum = 0;
-  let htmlTable = "<table id='preftable'><tbody id='preftbody'><tr><th style='width:80px; min-width:80px'><input id='F00' type='checkbox'/> Delete</th><th style='width:100px; min-width:100px'>Key<span style='color:red'>*</span></th><th style='width:200px; min-width:200px'>Search Engine Name<span style='color:red'>*</span></th><th style='min-width:300px'>Url<span style='color:red'>*</span></th><th style='width:200px; min-width:200px'>Description</th></tr>";
+  let htmlTable = "<table id='preftable'><tbody id='preftbody'><tr><th style='width:80px; min-width:80px'><input id='F00' type='checkbox'/> Delete</th><th id='F01' class='clickable' style='width:100px; min-width:100px;'>Key<span style='color:red'>*</span></th><th id='F02' class='clickable' style='width:200px; min-width:200px'>Search Engine Name<span style='color:red'>*</span></th><th id='F03' class='clickable' style='min-width:300px'>Url<span style='color:red'>*</span></th><th id='F04' class='clickable' style='width:200px; min-width:200px'>Description</th></tr>";
   if (result.hasOwnProperty(SEARCH_PREFERENCE_KEY)) {
     let preferences = result[SEARCH_PREFERENCE_KEY];
     for (var key in preferences) {
@@ -186,6 +196,19 @@ function parseAndShowCurrentData(result) {
 
   preferenceRowCount = rowNum;
   document.querySelector("#F00").addEventListener("click", selectAllDeletePreferenceRow);
+
+  // Comparator for preference table
+  function getClickSortFunction(objId, propName) {
+    return function() {
+      var ascOrder = (objId in sortOrderOfPrefColById) ? sortOrderOfPrefColById[objId] : true;
+      sortPrefsOnProperty(propName, ascOrder);
+      sortOrderOfPrefColById[objId] = !ascOrder;
+    };
+  }
+  document.querySelector("#F01").addEventListener("click", getClickSortFunction("#F01", "key"));
+  document.querySelector("#F02").addEventListener("click", getClickSortFunction("#F02", "name"));
+  document.querySelector("#F03").addEventListener("click", getClickSortFunction("#F03", "url"));
+  document.querySelector("#F04").addEventListener("click", getClickSortFunction("#F04", "description"));
 }
 
 function restoreOptions() {
@@ -196,6 +219,9 @@ function restoreOptions() {
 
   var getting = browser.storage.local.get(SEARCH_PREFERENCE_KEY);
   getting.then(parseAndShowCurrentData, onError);
+
+  // Reset sort order details
+  sortOrderOfPrefColById = {};
 }
 
 function selectAllDeletePreferenceRow() {
@@ -217,9 +243,11 @@ function displayMessage(text, isError = false) {
   msgField.style.color = (isError ? "red" : "green");
   if (! text || text.length == 0) {
     msgField.innerHTML = "<br>";
+    hideModalMsg();
   }
   else {
     msgField.innerHTML = text;
+    if (isError) showModalMsg(text, isError);
   }
 }
 
@@ -276,7 +304,7 @@ function mergeOnScreenPrefAndFileData(filePrefs) {
     var c4 = document.querySelector("#F" + count + "4");
 
 	if (c1 == null || c2 == null || c3 == null || c4 == null) continue;
-    
+
 	// Clear color highlights
     c1.style["background-color"] = "";
     c2.style["background-color"] = "";
@@ -336,6 +364,7 @@ function showPreferencesPlainText() {
 
 function resetFields() {
   displayMessage("");
+  document.querySelector('#myModal').style.display = "none";
   document.querySelector("#showPrefDataButton").innerText = "Show Pref Data";
   document.querySelector("#outputPrefFileBlock").style["display"] = "none";
   document.querySelector("#inputPrefFileButton").value = "";
@@ -365,6 +394,87 @@ function loadPopularSearchEngines() {
   });
 }
 
+// Required to do sorting on table columns
+function buildPrefObjectArrayWithoutValidation() {
+  deletePreferenceRow();
+
+  var prefObjArr = [];
+  // Prepare data for saving and also do validations.
+  for (var count = 1; count <= preferenceRowCount; count++) {
+    var c1 = document.querySelector("#F" + count + "1");
+    var c2 = document.querySelector("#F" + count + "2");
+    var c3 = document.querySelector("#F" + count + "3");
+    var c4 = document.querySelector("#F" + count + "4");
+
+	  if (c1 == null || c2 == null || c3 == null || c4 == null) continue;
+
+    var key = c1.value.trim();
+    var name = c2.value.trim();
+    var url = c3.value.trim();
+    var desc = c4.value.trim();
+    if (key == "" && name == "" && url == "" && desc == "") continue;
+
+    prefObjArr.push({
+        "key": key,
+    	  "name": name,
+    	  "url": url,
+    	  "description": desc
+    });
+  }
+
+  return prefObjArr;
+}
+
+// To sort prefernce table on the given property name
+function sortPrefsOnProperty(propName, ascOrder) {
+  function ascSortObjectsOnProperty(name) {
+    return function(a, b) {
+      if (a[name] > b[name]) return 1;
+      if (a[name] < b[name]) return -1;
+      return 0;
+    }
+  }
+  function descSortObjectsOnProperty(name) {
+    return function(a, b) {
+      if (b[name] > a[name]) return 1;
+      if (b[name] < a[name]) return -1;
+      return 0;
+    }
+  }
+
+  var prefObjArr = buildPrefObjectArrayWithoutValidation();
+  prefObjArr = prefObjArr.sort(ascOrder ? ascSortObjectsOnProperty(propName) : descSortObjectsOnProperty(propName));
+
+  var prefJson = {};
+  var prevKeys = [];
+  var hasError = false;
+  var errMessage = "Error with duplicate search key(s) : ";
+  for (var idx in prefObjArr) {
+    var prefObj = prefObjArr[idx];
+    prefJson[prefObj["key"]] = {
+      "name": prefObj["name"],
+      "url": prefObj["url"],
+      "description": prefObj["description"]
+    }
+
+    if (prevKeys.includes(prefObj["key"])) {
+      errMessage += (hasError ? ", " : "") + prefObj["key"];
+      hasError = true;
+    }
+    prevKeys.push(prefObj["key"]);
+  }
+  if (hasError) {
+    displayMessage(errMessage, true);
+    return;
+  }
+
+  var prefStorageObj = {};
+  prefStorageObj[SEARCH_PREFERENCE_KEY] = prefJson
+  resetFields();
+  parseAndShowCurrentData(prefStorageObj);
+  displayMessage("Preference sorted on '" + propName + "' in " + (ascOrder ? "ascending" : "descending") + " order.");
+}
+
 resetFields();
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelector("#delete").addEventListener("click", deletePreferenceRow);
@@ -375,4 +485,3 @@ document.querySelector("#inputPrefFileButton").addEventListener("click", resetFi
 document.querySelector("#showPrefDataButton").addEventListener("click", showPreferencesPlainText);
 document.querySelector("#loadPopular").addEventListener("click", loadPopularSearchEngines);
 document.querySelector("form").addEventListener("submit", saveOptions);
-

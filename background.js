@@ -1,5 +1,10 @@
 
+// Search engines defined by user, saved in plugin storage
 let searchEngines = {};
+
+// Internal flag to disable search using multiple search engines
+// It is set to false automatically if any of the custom search engine key has CHAR_SEPARATOR_FOR_MULTI_SEARCH as per definition in utils.js
+let multiSearchDisabled = null
 
 // Split text assuming format '<search_engine> <search text>'
 function splitInputTextForSearch(text) {
@@ -23,7 +28,7 @@ function setSearchEngineDescription() {
     eNames = (eNames ? eNames + ", " + key : key);
   }
   if (eNames) {
-    browser.omnibox.setDefaultSuggestion({ description: `Search using following search engines - (${eNames})` });
+    browser.omnibox.setDefaultSuggestion({ description: `Search using (multi-search = ${multiSearchDisabled ? "off" : "on"}) search engines - (${eNames})` });
   }
   else {
     browser.omnibox.setDefaultSuggestion({ description: `No custom Search Engine setup. Go to plugin preferenes to add custom search engines.` });
@@ -59,6 +64,18 @@ function getSearchEngineSuggessions(text) {
     }
   }
   return suggessions;
+}
+
+// Get search suggessions for multiple search engines
+function getMuliSearchEngineSuggessions(text) {
+  var input = splitInputTextForSearch(text)
+  var suggessions = [];
+  var searchEngineKeys = input.searchEngine.split(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+  for (var keyIdx in searchEngineKeys) {
+    var searchKey = searchEngineKeys[keyIdx];
+    if (searchKey.length != 0) suggessions = suggessions.concat(getSearchEngineSuggessions(searchKey + " " + input.queryText));
+  }
+  return suggessions
 }
 
 // Build Search Url based on user input
@@ -99,7 +116,7 @@ function strReplaceAll(str, toReplace, replacement) {
 
 function buildUrlForSplitWordSearch(searchUrl, fullQueryText) {
   // Will contain all the remaining words if plaeholder count is less than query words.
-  var lastQueryText = ""; 
+  var lastQueryText = "";
   // Will contain the final split of query text words based on how many search tags are present in URL.
   var queryText = [];
   var parts = fullQueryText.split(" ");
@@ -234,7 +251,15 @@ function onError(error) {
 }
 
 function onGot(item) {
+  multiSearchDisabled = false
   if (item[SEARCH_PREFERENCE_KEY]) searchEngines = item[SEARCH_PREFERENCE_KEY];
+
+  for (var key in searchEngines) {
+    if (key.includes(CHAR_SEPARATOR_FOR_MULTI_SEARCH)) {
+      multiSearchDisabled = true;
+      break;
+    }
+  }
 }
 
 // Read preferences from storage
@@ -243,33 +268,80 @@ function getSearchEnginesFromPreferences() {
   preferences.then(onGot, onError);
 }
 
-// Mani function which loads the plugin functionality
+// Main function which loads the plugin functionality
 function main() {
   pluginLoadData();
-  
+
   // Update the suggestions whenever the input is changed.
   browser.omnibox.onInputChanged.addListener((text, addSuggestions) => {
-    addSuggestions(getSearchEngineSuggessions(text));
+    addSuggestions(multiSearchDisabled ? getSearchEngineSuggessions(text) : getMuliSearchEngineSuggessions(text));
   });
 
   // Open the page based on how the user clicks on a suggestion.
   browser.omnibox.onInputEntered.addListener((text, disposition) => {
-    let url = buildSearchURL(text);
-    if (!url && JSON.stringify(searchEngines) == "{}") browser.runtime.openOptionsPage();
-    if (!url) return;
-    switch (disposition) {
-      case "currentTab":
-        browser.tabs.update({url});
-        break;
-      case "newForegroundTab":
-        browser.tabs.create({url});
-        break;
-      case "newBackgroundTab":
-        browser.tabs.create({url, active: false});
-        break;
+    if (JSON.stringify(searchEngines) == "{}") {
+      browser.runtime.openOptionsPage();
+      return;
     }
+
+    // Array of objects {"url" : url, "disposition" : disposition}
+    var searchEngineUrls = [];
+    if (multiSearchDisabled) {
+      var url = buildSearchURL(text);
+      if (url) searchEngineUrls.push({"url": url, "disposition": disposition});
+    }
+    else {
+      var input = splitInputTextForSearch(text)
+      var searchEngineKeys = input.searchEngine.split(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+      var isFirstSearch = true;
+      for (var keyIdx in searchEngineKeys) {
+        var searchKey = searchEngineKeys[keyIdx];
+        if (searchKey.length != 0) {
+          var url = buildSearchURL(searchEngineKeys[keyIdx] + " " + input.queryText);
+          if (url) searchEngineUrls.push({"url": url, "disposition": (isFirstSearch) ? disposition : "newBackgroundTab"});
+          isFirstSearch = false;
+        }
+      }
+    }
+
+    if (searchEngineUrls.length == 0) return;
+
+    // For newBackgroundTab use.
+    function getOnGot(url) {
+        return function(tab) { browser.tabs.create({url, index: tab.index + 1, active: false}); }
+    }
+
+    function getOnErr(url) {
+      return function(err) { browser.tabs.create({url, active: false}); }
+    }
+
+    // Loop through to open tabs in the order of search engine keyword
+    while (searchEngineUrls.length > 0) {
+      var seUrl = searchEngineUrls.pop();
+      var url = seUrl.url;
+      var curDisposition = seUrl.disposition;
+      switch (curDisposition) {
+        case "currentTab":
+          browser.tabs.update({url});
+          break;
+        case "newForegroundTab":
+          browser.tabs.create({url});
+          break;
+        case "newBackgroundTab":
+          // Try opening new tab next to current tab.
+          // On error simply open new tab at the end.
+          try {
+            browser.tabs.query({active: true, windowId: browser.windows.WINDOW_ID_CURRENT})
+            .then(tabs => browser.tabs.get(tabs[0].id))
+            .then(getOnGot(url),getOnErr(url));
+          }
+          catch (err) {
+            browser.tabs.create({url, active: false});
+          }
+          break;
+      }
+    };
   });
 }
 
 main();
-

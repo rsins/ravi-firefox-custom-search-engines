@@ -26,6 +26,9 @@ const PREFERENCE_FILE_VERSION_CUR = "1.0";
 // Url for popular search engines data
 const POPULAR_SEARCH_ENGINE_URL = "https://raw.githubusercontent.com/rsins/ravi-firefox-custom-search-engines/master/SampleCustomEngines/PopularSearchEngines.txt";
 
+// For search using multiple search engines
+const CHAR_SEPARATOR_FOR_MULTI_SEARCH = ","
+
 function getPopularSearchEngineData() {
   return fetch(POPULAR_SEARCH_ENGINE_URL).then((resp) => resp.text());
 }

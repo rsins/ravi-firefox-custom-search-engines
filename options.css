@@ -1,0 +1,37 @@
+
+form {
+    text-align: left;
+    width: 100%;
+}
+
+#message, #preferences {
+    padding: 5px 0px;
+}
+
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+button, input[type="file"] {
+	height: 25px;
+}
+
+input[type="text"] {
+   	width: 100%;
+}
