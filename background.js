@@ -298,8 +298,10 @@ function main() {
         var searchKey = searchEngineKeys[keyIdx];
         if (searchKey.length != 0) {
           var url = buildSearchURL(searchEngineKeys[keyIdx] + " " + input.queryText);
-          if (url) searchEngineUrls.push({"url": url, "disposition": (isFirstSearch) ? disposition : "newBackgroundTab"});
-          isFirstSearch = false;
+          if (url) {
+            searchEngineUrls.push({"url": url, "disposition": (isFirstSearch) ? disposition : "newBackgroundTab"});
+            isFirstSearch = false;
+          }
         }
       }
     }
