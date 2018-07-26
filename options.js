@@ -9,6 +9,9 @@ let multiSearchDisabled = null
 // To store sort order of table columns
 let sortOrderOfPrefColById = {}
 
+function getColorBlockForHtml(color) {
+  return "<span style='background-color: " + color + "; display: inline-block; width: 12px; height: 12px; border-radius: 50%;'></span>";
+}
 
 function saveOptions(e) {
   e.preventDefault();
@@ -45,25 +48,13 @@ function saveOptions(e) {
        // Do nothing.
        console.log("One input row but no data to save.");
     }
-    // Check empty fields.
-    else if (c1.value.trim() == "" || c2.value.trim() == "" || c3.value.trim() == "") {
-      c1.style["background-color"] = "#ffcccc";
-      c2.style["background-color"] = "#ffcccc";
-      c3.style["background-color"] = "#ffcccc";
-      if (! inputError.hasMissingData) {
-        inputError.hasAtLeastOneError = true;
-        inputError.hasMissingData = true;
-        inputError.displayMessage += "* <span style='background-color: #ffcccc'>&nbsp;&nbsp;&nbsp;&nbsp;</span> All mandatory details should be provided.<br>";
-      }
-
-    }
     // Check invalid search keys
     else if (c1.value.trim().includes(" ")) {
       c1.style["background-color"] = "#42f4b9";
       if (! inputError.hasInvalidKey) {
         inputError.hasAtLeastOneError = true;
         inputError.hasInvalidKey = true;
-        inputError.displayMessage += "* <span style='background-color: #42f4b9'>&nbsp;&nbsp;&nbsp;&nbsp;</span> Search Key cannot include space.</span><br>";
+        inputError.displayMessage += getColorBlockForHtml("#42f4b9") + " Search Key cannot include space.</span><br>";
       }
     }
     // Check duplicate search keys
@@ -72,7 +63,18 @@ function saveOptions(e) {
       if (! inputError.hasDuplicateKey) {
         inputError.hasAtLeastOneError = true;
         inputError.hasDuplicateKey = true;
-        inputError.displayMessage += "* <span style='background-color: #dbccff'>&nbsp;&nbsp;&nbsp;&nbsp;</span> Duplicate search key.</span><br>";
+        inputError.displayMessage += getColorBlockForHtml("#dbccff") + " Duplicate search key.</span><br>";
+      }
+    }
+    // Check empty fields.
+    else if (c1.value.trim() == "" || c2.value.trim() == "" || c3.value.trim() == "") {
+      c1.style["background-color"] = "#ffcccc";
+      c2.style["background-color"] = "#ffcccc";
+      c3.style["background-color"] = "#ffcccc";
+      if (! inputError.hasMissingData) {
+        inputError.hasAtLeastOneError = true;
+        inputError.hasMissingData = true;
+        inputError.displayMessage += getColorBlockForHtml("#ffcccc") + " All mandatory details should be provided.<br>";
       }
     }
     // Check url protocol
@@ -81,7 +83,7 @@ function saveOptions(e) {
       if (! inputError.hasInvalidUrlProtocol) {
         inputError.hasAtLeastOneError = true;
         inputError.hasInvalidUrlProtocol = true;
-        inputError.displayMessage += "* <span style='background-color: #fbccff'>&nbsp;&nbsp;&nbsp;&nbsp;</span> URL should start with 'http://' or 'https://'.</span><br>";
+        inputError.displayMessage += getColorBlockForHtml("#fbccff") + " URL should start with 'http://' or 'https://'.</span><br>";
       }
     }
     // Check url search parameter, handle split word searches as well.
@@ -114,7 +116,7 @@ function saveOptions(e) {
       if (! inputError.hasInvalidUrlSearchParam) {
         inputError.hasAtLeastOneError = true;
         inputError.hasInvalidUrlSearchParam = true;
-        inputError.displayMessage += "* <span style='background-color: #ccd2ff'>&nbsp;&nbsp;&nbsp;&nbsp;</span> URL must contain either {searchTerms} or {searchTerms[x]} where x can range from 0 to 9.</span><br>";
+        inputError.displayMessage += getColorBlockForHtml("#ccd2ff") + " URL must contain either {searchTerms} or {searchTerms[x]} where x can range from 0 to 9.</span><br>";
       }
     }
     else {
@@ -447,8 +449,9 @@ function sortPrefsOnProperty(propName, ascOrder) {
 
   var prefJson = {};
   var prevKeys = [];
+  var keysInError = [];
   var hasError = false;
-  var errMessage = "Error with duplicate search key(s) : ";
+  var errMessage = getColorBlockForHtml("#dbccff") + " To sort due please resolve error with duplicate search key(s) : ";
   for (var idx in prefObjArr) {
     var prefObj = prefObjArr[idx];
     prefJson[prefObj["key"]] = {
@@ -458,12 +461,32 @@ function sortPrefsOnProperty(propName, ascOrder) {
     }
 
     if (prevKeys.includes(prefObj["key"])) {
-      errMessage += (hasError ? ", " : "") + prefObj["key"];
+      searchKey = prefObj["key"];
+      errMessage += (hasError ? ", " : "") + searchKey;
+      keysInError.push(searchKey);
       hasError = true;
     }
     prevKeys.push(prefObj["key"]);
   }
   if (hasError) {
+    // Clear formatting if any and highlight the keys in error.
+    for (var count = 1; count <= preferenceRowCount; count++) {
+      var c1 = document.querySelector("#F" + count + "1");
+      var c2 = document.querySelector("#F" + count + "2");
+      var c3 = document.querySelector("#F" + count + "3");
+      var c4 = document.querySelector("#F" + count + "4");
+
+  	  if (c1 == null || c2 == null || c3 == null || c4 == null) continue;
+
+  	  // Clear color highlights
+      c1.style["background-color"] = "";
+      c2.style["background-color"] = "";
+      c3.style["background-color"] = "";
+      c4.style["background-color"] = "";
+      if (keysInError.includes(c1.value.trim())) {
+        c1.style["background-color"] = "#dbccff";
+      }
+    }
     displayMessage(errMessage, true);
     return;
   }
