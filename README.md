@@ -10,3 +10,9 @@ Example:
    ms google <search term>
    This will result in search to be made on google assuming a custom engine is already setup with google as keyword for search.
 
+
+Now multiple search engines can be used for search in single go. Type search engine keys separated with comma ',' (no spaces). 
+E.g. "ms key1,key2,key3 <search text>"
+
+If search engine key itself contains comma ',' then multi-search feature is automatically disabled.
+
