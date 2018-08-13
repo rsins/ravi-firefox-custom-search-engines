@@ -63,21 +63,21 @@ function saveOptions(e) {
       }
     }
     // Check invalid search keys
-    else if (c1.value.trim().startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) {
+    else if (c1.value.trim().includes(CHAR_GROUP_NAME_START_IDENTIFIER)) {
       c1.style["background-color"] = "#9ba5ef";
       if (! inputError.hasInvalidKey2) {
         inputError.hasAtLeastOneError = true;
         inputError.hasInvalidKey2 = true;
-        inputError.displayMessage += getColorBlockForHtml("#9ba5ef") + " Search Key cannot start with '" + CHAR_GROUP_NAME_START_IDENTIFIER + "'.</span><br>";
+        inputError.displayMessage += getColorBlockForHtml("#9ba5ef") + " Search Key cannot have '" + CHAR_GROUP_NAME_START_IDENTIFIER + "'.</span><br>";
       }
     }
     // Check invalid category
-    else if (c5.value.trim().startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) {
+    else if (c5.value.trim().includes(CHAR_GROUP_NAME_START_IDENTIFIER)) {
       c5.style["background-color"] = "#fc6f8b";
       if (! inputError.hasInvalidCategory1) {
         inputError.hasAtLeastOneError = true;
         inputError.hasInvalidCategory1 = true;
-        inputError.displayMessage += getColorBlockForHtml("#fc6f8b") + " Search category cannot start with '" + CHAR_GROUP_NAME_START_IDENTIFIER + "'.</span><br>";
+        inputError.displayMessage += getColorBlockForHtml("#fc6f8b") + " Search category cannot have '" + CHAR_GROUP_NAME_START_IDENTIFIER + "'.</span><br>";
       }
     }
     // Check invalid category
@@ -157,6 +157,10 @@ function saveOptions(e) {
       var url = c3.value.trim();
       var desc = c4.value.trim();
       var cat = c5.value.trim();
+      cat = cat.trimChars(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+      cat = strReplaceAll(cat, CHAR_SEPARATOR_FOR_MULTI_SEARCH + CHAR_SEPARATOR_FOR_MULTI_SEARCH, CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+      let catSet = new Set(cat.split(CHAR_SEPARATOR_FOR_MULTI_SEARCH));
+      cat = Array.from(catSet).join(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
       prefJson[key] = {
       	  "name": name,
       	  "url": url,

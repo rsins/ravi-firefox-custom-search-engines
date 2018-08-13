@@ -79,8 +79,38 @@ function getMuliSearchEngineSuggessions(text) {
   return suggessions
 }
 
-// Get Category based search suggestion
-function getCategoryBasedSuggestions(text) {
+// Assume input is comma seperated categories
+function getMultiCategoryBasedSuggestions(text) {
+  if (! text.startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) return;
+
+  let input = splitInputTextForSearch(text)
+
+  let categoriesStr = input.searchEngine;
+  categoriesStr = categoriesStr.substring(1, categoriesStr.length);
+  categoriesStr = categoriesStr.trimChars(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+  categoriesStr = strReplaceAll(categoriesStr, CHAR_SEPARATOR_FOR_MULTI_SEARCH + CHAR_SEPARATOR_FOR_MULTI_SEARCH, CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+  let catSet = new Set(categoriesStr.split(CHAR_SEPARATOR_FOR_MULTI_SEARCH));
+  let catArr = Array.from(catSet);
+
+  let suggestions = [];
+  for (let idx in catArr) {
+    let partSuggestions = getSingleCategoryBasedSuggestions(CHAR_GROUP_NAME_START_IDENTIFIER + catArr[idx] + " " + input.queryText);
+    suggestions = suggestions.concat(partSuggestions);
+  }
+  // Bring the category suggestions at the start
+  suggestions.sort(function (a,b) {
+    if ( a["content"].startsWith(CHAR_GROUP_NAME_START_IDENTIFIER) &&  b["content"].startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) return  0;
+    if ( a["content"].startsWith(CHAR_GROUP_NAME_START_IDENTIFIER) && !b["content"].startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) return -1;
+    if (!a["content"].startsWith(CHAR_GROUP_NAME_START_IDENTIFIER) &&  b["content"].startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) return  1;
+    if (!a["content"].startsWith(CHAR_GROUP_NAME_START_IDENTIFIER) && !b["content"].startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) return  0;
+    return 0;
+  });
+
+  return suggestions;
+}
+
+// Get single Category based search suggestion
+function getSingleCategoryBasedSuggestions(text) {
   let input = splitInputTextForSearch(text)
   let suggessions = [];
   let categories = getMatchingSearchCategoriesForInputCategory(input.searchEngine);
@@ -123,7 +153,7 @@ function getCategoryBasedSuggestions(text) {
 // Main Search suggestion Function
 function getSearchEngineSuggessions_Main(text) {
   // If it is search category based search
-  if (text.startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) return getCategoryBasedSuggestions(text)
+  if (text.startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) return getMultiCategoryBasedSuggestions(text)
 
   // If multi-search disabled return only single key based suggestions
   if  (multiSearchDisabled) return getSearchEngineSuggessions(text);
@@ -158,8 +188,10 @@ function getMatchingSearchCategoriesForInputCategory(searchCategory) {
     var newSearchCategory = searchCategory.substring(1, searchCategory.length);
     for (var key in searchEngines) {
       var searchEngObj = searchEngines[key];
-      var cat = resolveValue(searchEngObj,"category");
-      if (cat.startsWith(newSearchCategory)) categories.add(cat);
+      var catArr = resolveValue(searchEngObj,"category").split(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+      for (let idx in catArr) {
+        if (catArr[idx].startsWith(newSearchCategory)) categories.add(catArr[idx]);
+      }
     }
   }
 
@@ -191,8 +223,8 @@ function getSearchEngineKeysForInputCategory(searchCategory) {
       let curCategory = matchingCategories[0];
       for (var key in searchEngines) {
         var searchEngObj = searchEngines[key];
-        var cat = resolveValue(searchEngObj,"category");
-        if (cat == curCategory) searchKeys.push(key);
+        var catArr = resolveValue(searchEngObj,"category").split(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+        if (catArr.includes(curCategory)) searchKeys.push(key);
       }
     }
   }
@@ -230,10 +262,6 @@ function buildSearchURL(text) {
   }
 
   return null;
-}
-
-function strReplaceAll(str, toReplace, replacement) {
-  return str.split(toReplace).join(replacement);
 }
 
 function buildUrlForSplitWordSearch(searchUrl, fullQueryText) {
@@ -408,13 +436,32 @@ function buildUrlsForSearchKeys(searchEngineKeys, queryText, firstDisposition) {
   return searchEngineUrls;
 }
 
+// Assume that input is comma seperated list of categories from user.
+function getSearchKeysFor_MultiCategories(categoriesStr) {
+  let searchEngineKeys = new Set();
+  if (! categoriesStr.startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) return Array.from(searchEngineKeys);
+
+  categoriesStr = categoriesStr.substring(1, categoriesStr.length);
+  categoriesStr = categoriesStr.trimChars(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+  categoriesStr = strReplaceAll(categoriesStr, CHAR_SEPARATOR_FOR_MULTI_SEARCH + CHAR_SEPARATOR_FOR_MULTI_SEARCH, CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+  let catSet = new Set(categoriesStr.split(CHAR_SEPARATOR_FOR_MULTI_SEARCH));
+  let catArr = Array.from(catSet);
+
+  for (let idx in catArr) {
+    let keys = getSearchEngineKeysForInputCategory(CHAR_GROUP_NAME_START_IDENTIFIER + catArr[idx]);
+    keys.forEach(searchEngineKeys.add, searchEngineKeys);
+  }
+
+  return Array.from(searchEngineKeys);
+}
+
 function kickOffSearch_BuildUrls(text, disposition) {
   // Array of objects {"url" : url, "disposition" : disposition}
   var searchEngineUrls = [];
   if (text.startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) {
     // For category driven search
     var input = splitInputTextForSearch(text)
-    var searchEngineKeys = getSearchEngineKeysForInputCategory(input.searchEngine);
+    var searchEngineKeys = getSearchKeysFor_MultiCategories(input.searchEngine);
     searchEngineUrls = buildUrlsForSearchKeys(searchEngineKeys, input.queryText, disposition);
   }
   else if (multiSearchDisabled) {
@@ -423,7 +470,7 @@ function kickOffSearch_BuildUrls(text, disposition) {
   }
   else {
     var input = splitInputTextForSearch(text)
-    var searchEngineKeys = input.searchEngine.split(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+    var searchEngineKeys = Array.from(new Set(input.searchEngine.split(CHAR_SEPARATOR_FOR_MULTI_SEARCH)));
     searchEngineUrls = buildUrlsForSearchKeys(searchEngineKeys, input.queryText, disposition);
   }
   return searchEngineUrls;

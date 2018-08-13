@@ -23,12 +23,33 @@ prefSearchDiv.onkeyup = function() {
 
 // ---------------------------- For Autocomplete functionality -------------------------------
 
+function splitInputValuesForAutoComplete(inp) {
+  // To get the value from current caret position.
+  let curCaretPos = (inp.selectionStart || inp.selectionStart == 0) ? inp.selectionStart : 0;
+  let fieldValue = inp.value;
+  let leftPartFromCurCaret = fieldValue.substring(0,curCaretPos);
+
+  let lastPosInleftPart = leftPartFromCurCaret.lastIndexOf(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+  let leftPart = leftPartFromCurCaret.substring(0,lastPosInleftPart);
+  let rightPart = fieldValue.substring(curCaretPos, fieldValue.length+1);
+  if (rightPart.startsWith(CHAR_SEPARATOR_FOR_MULTI_SEARCH)) rightPart = rightPart.substring(1, rightPart.length+1);
+
+  let curVal = fieldValue.substring(lastPosInleftPart+1, curCaretPos);
+
+  return {
+    "curVal": curVal,
+    "leftPart" : leftPart,
+    "rightPart": rightPart
+  };
+}
+
 function autocomplete(inp, listArrFunction) {
 
   function showSuggesstions(e, inp, listArrFunction) {
     let arr = listArrFunction(inp);
 
-    var a, b, i, val = inp.value;
+    let splitInputObj = splitInputValuesForAutoComplete(inp);
+    var a, b, i, val = splitInputObj.curVal;
     /*close any already open lists of autocompleted values*/
     closeAllLists();
     if (!val) { val="";}
@@ -52,8 +73,13 @@ function autocomplete(inp, listArrFunction) {
         b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
         /*execute a function when someone clicks on the item value (DIV element):*/
             b.addEventListener("click", function(e) {
+              let splitInputObj = splitInputValuesForAutoComplete(inp);
               /*insert the value for the autocomplete text field:*/
-              inp.value = this.getElementsByTagName("input")[0].value;
+              let selectedVal = this.getElementsByTagName("input")[0].value;
+              let calculatedVal = (splitInputObj.leftPart == "") ? "" : splitInputObj.leftPart + CHAR_SEPARATOR_FOR_MULTI_SEARCH;
+              calculatedVal += selectedVal;
+              calculatedVal += (splitInputObj.rightPart == "") ? "" : CHAR_SEPARATOR_FOR_MULTI_SEARCH + splitInputObj.rightPart;
+              inp.value = calculatedVal;
               /*close the list of autocompleted values,
               (or any other open lists of autocompleted values:*/
               closeAllLists();
@@ -84,12 +110,14 @@ function autocomplete(inp, listArrFunction) {
       var x = document.getElementById(this.id + "autocomplete-list");
       if (x) x = x.getElementsByTagName("div");
       if (e.keyCode == 40) {
+        e.preventDefault();
         /*If the arrow DOWN key is pressed,
         increase the currentFocus variable:*/
         currentFocus++;
         /*and and make the current item more visible:*/
         addActive(x);
       } else if (e.keyCode == 38) { //up
+        e.preventDefault();
         /*If the arrow UP key is pressed,
         decrease the currentFocus variable:*/
         currentFocus--;
