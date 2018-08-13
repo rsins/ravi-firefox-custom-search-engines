@@ -69,6 +69,7 @@ function getSearchEngineSuggessions(text) {
 // Get search suggessions for multiple search engines
 function getMuliSearchEngineSuggessions(text) {
   var input = splitInputTextForSearch(text)
+  if (! input.searchEngine) return
   var suggessions = [];
   var searchEngineKeys = input.searchEngine.split(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
   for (var keyIdx in searchEngineKeys) {
@@ -76,6 +77,127 @@ function getMuliSearchEngineSuggessions(text) {
     if (searchKey.length != 0) suggessions = suggessions.concat(getSearchEngineSuggessions(searchKey + " " + input.queryText));
   }
   return suggessions
+}
+
+// Get Category based search suggestion
+function getCategoryBasedSuggestions(text) {
+  let input = splitInputTextForSearch(text)
+  let suggessions = [];
+  let categories = getMatchingSearchCategoriesForInputCategory(input.searchEngine);
+
+  if (input.queryText) {
+    if (categories.length == 1) {
+      let searchEngineKeys = [];
+      let curCategory = categories[0];
+      if (curCategory == "") {
+        suggessions.push({ content: CHAR_GROUP_NAME_START_IDENTIFIER+CHAR_GROUP_NAME_START_IDENTIFIER+" "+input.queryText, description: "Search Engines in blank category"});
+        searchEngineKeys = getSearchEngineKeysForInputCategory(CHAR_GROUP_NAME_START_IDENTIFIER+CHAR_GROUP_NAME_START_IDENTIFIER);
+      }
+      else {
+        suggessions.push({ content: CHAR_GROUP_NAME_START_IDENTIFIER+curCategory+" "+input.queryText, description: "Search Engines in '" + curCategory + "' category"});
+        searchEngineKeys = getSearchEngineKeysForInputCategory(CHAR_GROUP_NAME_START_IDENTIFIER+curCategory);
+      }
+      for (var keyIdx in searchEngineKeys) {
+        var searchKey = searchEngineKeys[keyIdx];
+        if (searchKey.length != 0) suggessions = suggessions.concat(getSearchEngineSuggessions(searchKey + " " + input.queryText));
+      }
+    }
+    else {
+      if (categories.includes("")) suggessions.push({ content: "@@"+" "+input.queryText, description: "Search Engines in blank category"});
+      for (let idx in categories) {
+        let cat = categories[idx];
+        if (cat != "") suggessions.push({ content: "@"+cat+" "+input.queryText, description: "Search Engines in '" + cat + "' category"});
+      }
+    }
+  }
+  else {
+    if (categories.includes("")) suggessions.push({ content: "@@", description: "Search Engines in blank category"});
+    for (let idx in categories) {
+      let cat = categories[idx];
+      if (cat != "") suggessions.push({ content: "@"+cat, description: "Search Engines in '" + cat + "' category"});
+    }
+  }
+  return suggessions;
+}
+
+// Main Search suggestion Function
+function getSearchEngineSuggessions_Main(text) {
+  // If it is search category based search
+  if (text.startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) return getCategoryBasedSuggestions(text)
+
+  // If multi-search disabled return only single key based suggestions
+  if  (multiSearchDisabled) return getSearchEngineSuggessions(text);
+
+  return getMuliSearchEngineSuggessions(text);
+}
+
+// If user search key is category then return matching list of search categories.
+function getMatchingSearchCategoriesForInputCategory(searchCategory) {
+  if (! searchCategory.startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) return;
+  let categories = new Set();
+
+  if (searchCategory == CHAR_GROUP_NAME_START_IDENTIFIER) {
+    // Pick all the search engines.
+    for (var key in searchEngines) {
+      let cat = resolveValue(searchEngines[key], "category");
+      categories.add(cat);
+    }
+  }
+  else if (searchCategory == (CHAR_GROUP_NAME_START_IDENTIFIER + CHAR_GROUP_NAME_START_IDENTIFIER)) {
+    // Pick the search engines with blank/empty category
+    for (var key in searchEngines) {
+      let cat = resolveValue(searchEngines[key], "category");
+      if (cat == "") {
+        // Need to check if there is at least one empty search category.
+        categories.add(cat);
+        break;
+      }
+    }
+  }
+  else if (searchCategory.startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) {
+    var newSearchCategory = searchCategory.substring(1, searchCategory.length);
+    for (var key in searchEngines) {
+      var searchEngObj = searchEngines[key];
+      var cat = resolveValue(searchEngObj,"category");
+      if (cat.startsWith(newSearchCategory)) categories.add(cat);
+    }
+  }
+
+  return Array.from(categories);
+}
+
+// If user search key is a category then it return the matching list of search keys for given category
+function getSearchEngineKeysForInputCategory(searchCategory) {
+  if (! searchCategory.startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) return;
+  var searchKeys = [];
+
+  if (searchCategory == CHAR_GROUP_NAME_START_IDENTIFIER) {
+    // Pick all the search engines.
+    for (var key in searchEngines) {
+      searchKeys.push(key);
+    }
+  }
+  else if (searchCategory == (CHAR_GROUP_NAME_START_IDENTIFIER + CHAR_GROUP_NAME_START_IDENTIFIER)) {
+    // Pick the search engines with blank/empty category
+    for (var key in searchEngines) {
+      var searchEngObj = searchEngines[key];
+      if (resolveValue(searchEngObj,"category") == "") searchKeys.push(key);
+    }
+  }
+  else {
+    // Pick the search engines matching category. If there is only one category then pick that one.
+    var matchingCategories = getMatchingSearchCategoriesForInputCategory(searchCategory);
+    if (matchingCategories.length == 1) {
+      let curCategory = matchingCategories[0];
+      for (var key in searchEngines) {
+        var searchEngObj = searchEngines[key];
+        var cat = resolveValue(searchEngObj,"category");
+        if (cat == curCategory) searchKeys.push(key);
+      }
+    }
+  }
+
+  return searchKeys;
 }
 
 // Build Search Url based on user input
@@ -257,8 +379,10 @@ function onGot(item) {
   for (var key in searchEngines) {
     if (key.includes(CHAR_SEPARATOR_FOR_MULTI_SEARCH)) {
       multiSearchDisabled = true;
-      break;
     }
+    let curSearchObj = preferences[key];
+    // Handle new preference property 'category'
+    curSearchObj["category"] = resolveValue(curSearchObj, "category");
   }
 }
 
@@ -268,82 +392,104 @@ function getSearchEnginesFromPreferences() {
   preferences.then(onGot, onError);
 }
 
+function buildUrlsForSearchKeys(searchEngineKeys, queryText, firstDisposition) {
+  var searchEngineUrls = [];
+  var isFirstSearch = true;
+  for (var keyIdx in searchEngineKeys) {
+    var searchKey = searchEngineKeys[keyIdx];
+    if (searchKey.length != 0) {
+      var url = buildSearchURL(searchEngineKeys[keyIdx] + " " + queryText);
+      if (url) {
+        searchEngineUrls.push({"url": url, "disposition": (isFirstSearch) ? firstDisposition : "newBackgroundTab"});
+        isFirstSearch = false;
+      }
+    }
+  }
+  return searchEngineUrls;
+}
+
+function kickOffSearch_BuildUrls(text, disposition) {
+  // Array of objects {"url" : url, "disposition" : disposition}
+  var searchEngineUrls = [];
+  if (text.startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) {
+    // For category driven search
+    var input = splitInputTextForSearch(text)
+    var searchEngineKeys = getSearchEngineKeysForInputCategory(input.searchEngine);
+    searchEngineUrls = buildUrlsForSearchKeys(searchEngineKeys, input.queryText, disposition);
+  }
+  else if (multiSearchDisabled) {
+    var url = buildSearchURL(text);
+    if (url) searchEngineUrls.push({"url": url, "disposition": disposition});
+  }
+  else {
+    var input = splitInputTextForSearch(text)
+    var searchEngineKeys = input.searchEngine.split(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+    searchEngineUrls = buildUrlsForSearchKeys(searchEngineKeys, input.queryText, disposition);
+  }
+  return searchEngineUrls;
+}
+
+function kickOffSearch_OpenUrls(searchEngineUrls) {
+  if (searchEngineUrls.length == 0) return;
+
+  // For newBackgroundTab use.
+  function getOnGot(url) {
+      return function(tab) { browser.tabs.create({url, index: tab.index + 1, active: false}); }
+  }
+
+  function getOnErr(url) {
+    return function(err) { browser.tabs.create({url, active: false}); }
+  }
+
+  // Loop through to open tabs in the order of search engine keyword
+  while (searchEngineUrls.length > 0) {
+    var seUrl = searchEngineUrls.pop();
+    var url = seUrl.url;
+    var curDisposition = seUrl.disposition;
+    switch (curDisposition) {
+      case "currentTab":
+        browser.tabs.update({url});
+        break;
+      case "newForegroundTab":
+        browser.tabs.create({url});
+        break;
+      case "newBackgroundTab":
+        // Try opening new tab next to current tab.
+        // On error simply open new tab at the end.
+        try {
+          browser.tabs.query({active: true, windowId: browser.windows.WINDOW_ID_CURRENT})
+          .then(tabs => browser.tabs.get(tabs[0].id))
+          .then(getOnGot(url),getOnErr(url));
+        }
+        catch (err) {
+          browser.tabs.create({url, active: false});
+        }
+        break;
+    }
+  };
+}
+
+function kickOffSearch_Main(text, disposition) {
+  if (JSON.stringify(searchEngines) == "{}") {
+    browser.runtime.openOptionsPage();
+    return;
+  }
+
+  var searchEngineUrls = kickOffSearch_BuildUrls(text, disposition);
+  kickOffSearch_OpenUrls(searchEngineUrls);
+}
+
 // Main function which loads the plugin functionality
 function main() {
   pluginLoadData();
 
   // Update the suggestions whenever the input is changed.
   browser.omnibox.onInputChanged.addListener((text, addSuggestions) => {
-    addSuggestions(multiSearchDisabled ? getSearchEngineSuggessions(text) : getMuliSearchEngineSuggessions(text));
+    addSuggestions(getSearchEngineSuggessions_Main(text));
   });
 
   // Open the page based on how the user clicks on a suggestion.
-  browser.omnibox.onInputEntered.addListener((text, disposition) => {
-    if (JSON.stringify(searchEngines) == "{}") {
-      browser.runtime.openOptionsPage();
-      return;
-    }
-
-    // Array of objects {"url" : url, "disposition" : disposition}
-    var searchEngineUrls = [];
-    if (multiSearchDisabled) {
-      var url = buildSearchURL(text);
-      if (url) searchEngineUrls.push({"url": url, "disposition": disposition});
-    }
-    else {
-      var input = splitInputTextForSearch(text)
-      var searchEngineKeys = input.searchEngine.split(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
-      var isFirstSearch = true;
-      for (var keyIdx in searchEngineKeys) {
-        var searchKey = searchEngineKeys[keyIdx];
-        if (searchKey.length != 0) {
-          var url = buildSearchURL(searchEngineKeys[keyIdx] + " " + input.queryText);
-          if (url) {
-            searchEngineUrls.push({"url": url, "disposition": (isFirstSearch) ? disposition : "newBackgroundTab"});
-            isFirstSearch = false;
-          }
-        }
-      }
-    }
-
-    if (searchEngineUrls.length == 0) return;
-
-    // For newBackgroundTab use.
-    function getOnGot(url) {
-        return function(tab) { browser.tabs.create({url, index: tab.index + 1, active: false}); }
-    }
-
-    function getOnErr(url) {
-      return function(err) { browser.tabs.create({url, active: false}); }
-    }
-
-    // Loop through to open tabs in the order of search engine keyword
-    while (searchEngineUrls.length > 0) {
-      var seUrl = searchEngineUrls.pop();
-      var url = seUrl.url;
-      var curDisposition = seUrl.disposition;
-      switch (curDisposition) {
-        case "currentTab":
-          browser.tabs.update({url});
-          break;
-        case "newForegroundTab":
-          browser.tabs.create({url});
-          break;
-        case "newBackgroundTab":
-          // Try opening new tab next to current tab.
-          // On error simply open new tab at the end.
-          try {
-            browser.tabs.query({active: true, windowId: browser.windows.WINDOW_ID_CURRENT})
-            .then(tabs => browser.tabs.get(tabs[0].id))
-            .then(getOnGot(url),getOnErr(url));
-          }
-          catch (err) {
-            browser.tabs.create({url, active: false});
-          }
-          break;
-      }
-    };
-  });
+  browser.omnibox.onInputEntered.addListener(kickOffSearch_Main);
 }
 
 main();

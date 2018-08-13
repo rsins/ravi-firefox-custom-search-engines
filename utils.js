@@ -21,7 +21,7 @@ const PREFERENCE_FILE_VERSION_TAG = "file_version";
 // Minimum file version supported
 const PREFERENCE_FILE_VERSION_MIN = "1.0";
 // Current file version
-const PREFERENCE_FILE_VERSION_CUR = "1.0";
+const PREFERENCE_FILE_VERSION_CUR = "2.0";
 
 // Url for popular search engines data
 const POPULAR_SEARCH_ENGINE_URL = "https://raw.githubusercontent.com/rsins/ravi-firefox-custom-search-engines/master/SampleCustomEngines/PopularSearchEngines.txt";
@@ -29,6 +29,14 @@ const POPULAR_SEARCH_ENGINE_URL = "https://raw.githubusercontent.com/rsins/ravi-
 // For search using multiple search engines
 const CHAR_SEPARATOR_FOR_MULTI_SEARCH = ","
 
+// Char which starts the Group name for custom search Engines
+const CHAR_GROUP_NAME_START_IDENTIFIER = "@"
+
 function getPopularSearchEngineData() {
   return fetch(POPULAR_SEARCH_ENGINE_URL).then((resp) => resp.text());
+}
+
+// If value is undefined then return blank string.
+function resolveValue(curObj, name) {
+  return (curObj.hasOwnProperty(name)) ? curObj[name] : "";
 }

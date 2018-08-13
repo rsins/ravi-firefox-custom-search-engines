@@ -22,7 +22,10 @@ function saveOptions(e) {
       displayMessage: "Errors:<br>",
   	  hasMissingData: false,
   	  hasDuplicateKey: false,
-  	  hasInvalidKey: false,
+  	  hasInvalidKey1: false,
+      hasInvalidKey2: false,
+      hasInvalidCategory1: false,
+      hasInvalidCategory2: false,
   	  hasInvalidUrlProtocol: false,
   	  hasInvalidUrlSearchParam: false
   };
@@ -34,27 +37,56 @@ function saveOptions(e) {
     var c2 = document.querySelector("#F" + count + "2");
     var c3 = document.querySelector("#F" + count + "3");
     var c4 = document.querySelector("#F" + count + "4");
+    var c5 = document.querySelector("#F" + count + "5");
 
-	  if (c1 == null || c2 == null || c3 == null || c4 == null) continue;
+	  if (c1 == null || c2 == null || c3 == null || c4 == null || c5 == null) continue;
 
 	  // Clear color highlights
     c1.style["background-color"] = "";
     c2.style["background-color"] = "";
     c3.style["background-color"] = "";
     c4.style["background-color"] = "";
+    c5.style["background-color"] = "";
 
     // Corner case
-    if (preferenceRowCount == 1 && c1.value.trim() == "" && c2.value.trim() == "" && c3.value.trim() == "" && c4.value.trim() == "") {
+    if (preferenceRowCount == 1 && c1.value.trim() == "" && c2.value.trim() == "" && c3.value.trim() == "" && c4.value.trim() == "" && c5.value.trim() == "") {
        // Do nothing.
        console.log("One input row but no data to save.");
     }
     // Check invalid search keys
     else if (c1.value.trim().includes(" ")) {
       c1.style["background-color"] = "#42f4b9";
-      if (! inputError.hasInvalidKey) {
+      if (! inputError.hasInvalidKey1) {
         inputError.hasAtLeastOneError = true;
-        inputError.hasInvalidKey = true;
+        inputError.hasInvalidKey1 = true;
         inputError.displayMessage += getColorBlockForHtml("#42f4b9") + " Search Key cannot include space.</span><br>";
+      }
+    }
+    // Check invalid search keys
+    else if (c1.value.trim().startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) {
+      c1.style["background-color"] = "#9ba5ef";
+      if (! inputError.hasInvalidKey2) {
+        inputError.hasAtLeastOneError = true;
+        inputError.hasInvalidKey2 = true;
+        inputError.displayMessage += getColorBlockForHtml("#9ba5ef") + " Search Key cannot start with '" + CHAR_GROUP_NAME_START_IDENTIFIER + "'.</span><br>";
+      }
+    }
+    // Check invalid category
+    else if (c5.value.trim().startsWith(CHAR_GROUP_NAME_START_IDENTIFIER)) {
+      c5.style["background-color"] = "#fc6f8b";
+      if (! inputError.hasInvalidCategory1) {
+        inputError.hasAtLeastOneError = true;
+        inputError.hasInvalidCategory1 = true;
+        inputError.displayMessage += getColorBlockForHtml("#fc6f8b") + " Search category cannot start with '" + CHAR_GROUP_NAME_START_IDENTIFIER + "'.</span><br>";
+      }
+    }
+    // Check invalid category
+    else if (c5.value.trim().includes(" ")) {
+      c5.style["background-color"] = "#8f9fba";
+      if (! inputError.hasInvalidCategory2) {
+        inputError.hasAtLeastOneError = true;
+        inputError.hasInvalidCategory2 = true;
+        inputError.displayMessage += getColorBlockForHtml("#8f9fba") + " Search category cannot include space.</span><br>";
       }
     }
     // Check duplicate search keys
@@ -124,9 +156,11 @@ function saveOptions(e) {
       var name = c2.value.trim();
       var url = c3.value.trim();
       var desc = c4.value.trim();
+      var cat = c5.value.trim();
       prefJson[key] = {
       	  "name": name,
       	  "url": url,
+          "category": cat,
       	  "description": desc
       };
       if (key.includes(CHAR_SEPARATOR_FOR_MULTI_SEARCH)) multiSearchDisabled = true;
@@ -175,23 +209,52 @@ function addPreferenceRow() {
   var tabRef = document.querySelector("#preftbody");
   var newRow = tabRef.insertRow(tabRef.rows.length);
   preferenceRowCount += 1;
-  newRow.innerHTML = "<td><input id='F" + preferenceRowCount + "0' type='checkbox'/></td><td><input type='text' id='F" + preferenceRowCount + "1'/></td><td><input type='text' id='F" + preferenceRowCount + "2'/></td><td><input type='text' id='F" + preferenceRowCount + "3'/></td><td><input type='text' id='F" + preferenceRowCount + "4'/></td>";
+  let rowHtml = "<td><input id='F" + preferenceRowCount + "0' type='checkbox'/></td>";
+  rowHtml    += "<td><input type='text' id='F" + preferenceRowCount + "1'/></td>";
+  rowHtml    += "<td><input type='text' id='F" + preferenceRowCount + "2'/></td>";
+  rowHtml    += "<td><div class='autocomplete'><input type='text' id='F" + preferenceRowCount + "5'/></div></td>";
+  rowHtml    += "<td><input type='text' id='F" + preferenceRowCount + "3'/></td>";
+  rowHtml    += "<td><input type='text' id='F" + preferenceRowCount + "4'/></td>";
+  newRow.innerHTML = rowHtml;
+
+  let c5 = document.querySelector("#F" + preferenceRowCount + "5");
+	if (c5 != null) autocomplete(c5, listCurrentCategoriesFunction);
 }
 
 function parseAndShowCurrentData(result) {
   let rowNum = 0;
-  let htmlTable = "<table id='preftable'><tbody id='preftbody'><tr><th style='width:80px; min-width:80px'><input id='F00' type='checkbox'/> Delete</th><th id='F01' class='clickable' style='width:100px; min-width:100px;'>Key<span style='color:red'>*</span></th><th id='F02' class='clickable' style='width:200px; min-width:200px'>Search Engine Name<span style='color:red'>*</span></th><th id='F03' class='clickable' style='min-width:300px'>Url<span style='color:red'>*</span></th><th id='F04' class='clickable' style='width:200px; min-width:200px'>Description</th></tr>";
+  let htmlTable = "<table id='preftable'><tbody id='preftbody'><tr>";
+  htmlTable    += "<th style='width:80px; min-width:80px'><input id='F00' type='checkbox'/> Delete</th>";
+  htmlTable    += "<th id='F01' class='clickable' style='width:100px; min-width:100px;'>Key<span style='color:red'>*</span></th>";
+  htmlTable    += "<th id='F02' class='clickable' style='width:200px; min-width:200px;'>Search Engine Name<span style='color:red'>*</span></th>";
+  htmlTable    += "<th id='F05' class='clickable' style='width:100px; min-width:100px;'>Category</th>";
+  htmlTable    += "<th id='F03' class='clickable' style='min-width:300px'>Url<span style='color:red'>*</span></th>";
+  htmlTable    += "<th id='F04' class='clickable' style='width:200px; min-width:200px'>Description</th>";
+  htmlTable    += "</tr>";
   if (result.hasOwnProperty(SEARCH_PREFERENCE_KEY)) {
     let preferences = result[SEARCH_PREFERENCE_KEY];
     for (var key in preferences) {
       let curSearchObj = preferences[key];
       rowNum += 1;
-      htmlTable += "<tr><td><input id='F" + rowNum + "0' type='checkbox'/></td><td><input type='text' id='F" + rowNum + "1' value='" + key + "'/></td><td><input type='text' id='F" + rowNum + "2' value='" + curSearchObj.name + "'/></td><td><input type='text' id='F" + rowNum + "3' value='" + curSearchObj.url + "'/></td><td><input type='text' id='F" + rowNum + "4' value='" + curSearchObj.description + "'/></td></tr>";
+      htmlTable += "<tr><td><input id='F" + rowNum + "0' type='checkbox'/></td>";
+      htmlTable += "<td><input type='text' id='F" + rowNum + "1' value='" + key + "'/></td>";
+      htmlTable += "<td><input type='text' id='F" + rowNum + "2' value='" + resolveValue(curSearchObj, "name") + "'/></td>";
+      htmlTable += "<td><div class='autocomplete'><input type='text' id='F" + rowNum + "5' value='" + resolveValue(curSearchObj, "category") + "'/></div></td>";
+      htmlTable += "<td><input type='text' id='F" + rowNum + "3' value='" + resolveValue(curSearchObj, "url") + "'/></td>";
+      htmlTable += "<td><input type='text' id='F" + rowNum + "4' value='" + resolveValue(curSearchObj, "description") + "'/></td>";
+      htmlTable += "</tr>";
     }
   }
   if (rowNum == 0) {
       rowNum += 1;
-      htmlTable += "<tr><td><input id='F" + rowNum + "0' type='checkbox'/></td><td><input type='text' id='F" + rowNum + "1' value=''/></td><td><input type='text' id='F" + rowNum + "2' value=''/></td><td><input type='text' id='F" + rowNum + "3' value=''/></td><td><input type='text' id='F" + rowNum + "4' value=''/></td></tr>";
+      htmlTable += "<tr>";
+      htmlTable += "<td><input id='F" + rowNum + "0' type='checkbox'/></td>";
+      htmlTable += "<td><input type='text' id='F" + rowNum + "1' value=''/></td>";
+      htmlTable += "<td><input type='text' id='F" + rowNum + "2' value=''/></td>";
+      htmlTable += "<td><div class='autocomplete'><input type='text' id='F" + rowNum + "5' value=''/></div></td>";
+      htmlTable += "<td><input type='text' id='F" + rowNum + "3' value=''/></td>";
+      htmlTable += "<td><input type='text' id='F" + rowNum + "4' value=''/></td>";
+      htmlTable += "</tr>";
   }
   htmlTable += "</tbody></table>";
   document.querySelector("#preferences").innerHTML = htmlTable;
@@ -211,6 +274,26 @@ function parseAndShowCurrentData(result) {
   document.querySelector("#F02").addEventListener("click", getClickSortFunction("#F02", "name"));
   document.querySelector("#F03").addEventListener("click", getClickSortFunction("#F03", "url"));
   document.querySelector("#F04").addEventListener("click", getClickSortFunction("#F04", "description"));
+  document.querySelector("#F05").addEventListener("click", getClickSortFunction("#F05", "category"));
+
+  // Autocomplete feature on category
+  for (var count = 1; count <= preferenceRowCount; count++) {
+    var c5 = document.querySelector("#F" + count + "5");
+	  if (c5 == null) continue;
+    autocomplete(c5, listCurrentCategoriesFunction);
+  }
+}
+
+// Get all the current values of categories for autocomplete
+function listCurrentCategoriesFunction(inp) {
+  let catSet = new Set();
+  for (var count = 1; count <= preferenceRowCount; count++) {
+    var c5 = document.querySelector("#F" + count + "5");
+	  if (c5 == null || c5 == inp) continue;
+    let curCategories = new Set(c5.value.trim().split(CHAR_SEPARATOR_FOR_MULTI_SEARCH));
+    curCategories.forEach(catSet.add, catSet);
+  }
+  return Array.from(catSet);
 }
 
 function restoreOptions() {
@@ -304,26 +387,30 @@ function mergeOnScreenPrefAndFileData(filePrefs) {
     var c2 = document.querySelector("#F" + count + "2");
     var c3 = document.querySelector("#F" + count + "3");
     var c4 = document.querySelector("#F" + count + "4");
+    var c5 = document.querySelector("#F" + count + "5");
 
-	if (c1 == null || c2 == null || c3 == null || c4 == null) continue;
+	  if (c1 == null || c2 == null || c3 == null || c4 == null || c5 == null) continue;
 
-	// Clear color highlights
+	  // Clear color highlights
     c1.style["background-color"] = "";
     c2.style["background-color"] = "";
     c3.style["background-color"] = "";
     c4.style["background-color"] = "";
+    c5.style["background-color"] = "";
 
     var key = c1.value.trim();
     var name = c2.value.trim();
     var url = c3.value.trim();
     var desc = c4.value.trim();
+    var cat = c5.value.trim();
 
-	// If UI Pref Key is present in file data then ignore UI data
+	  // If UI Pref Key is present in file data then ignore UI data
     if (key == "" || prefs.hasOwnProperty(key)) continue;
 
     prefs[key] = {
       "name": name,
       "url": url,
+      "category": cat,
       "description": desc
     };
   };
@@ -370,7 +457,9 @@ function resetFields() {
   document.querySelector("#showPrefDataButton").innerText = "Show Pref Data";
   document.querySelector("#outputPrefFileBlock").style["display"] = "none";
   document.querySelector("#inputPrefFileButton").value = "";
-  var chkBoxMain = document.querySelector("#F00");
+  let prefSearchBox = document.querySelector("#myPrefSearch");
+  if (prefSearchBox) prefSearchBox.value = "";
+  let chkBoxMain = document.querySelector("#F00");
   if (chkBoxMain) {
     chkBoxMain.checked = false;
     selectAllDeletePreferenceRow();
@@ -407,19 +496,22 @@ function buildPrefObjectArrayWithoutValidation() {
     var c2 = document.querySelector("#F" + count + "2");
     var c3 = document.querySelector("#F" + count + "3");
     var c4 = document.querySelector("#F" + count + "4");
+    var c5 = document.querySelector("#F" + count + "5");
 
-	  if (c1 == null || c2 == null || c3 == null || c4 == null) continue;
+	  if (c1 == null || c2 == null || c3 == null || c4 == null || c5 == null) continue;
 
     var key = c1.value.trim();
     var name = c2.value.trim();
     var url = c3.value.trim();
     var desc = c4.value.trim();
-    if (key == "" && name == "" && url == "" && desc == "") continue;
+    var cat = c5.value.trim();
+    if (key == "" && name == "" && url == "" && desc == "" && cat == "") continue;
 
     prefObjArr.push({
         "key": key,
     	  "name": name,
     	  "url": url,
+        "category": cat,
     	  "description": desc
     });
   }
@@ -457,6 +549,7 @@ function sortPrefsOnProperty(propName, ascOrder) {
     prefJson[prefObj["key"]] = {
       "name": prefObj["name"],
       "url": prefObj["url"],
+      "category": prefObj["category"],
       "description": prefObj["description"]
     }
 
@@ -475,14 +568,16 @@ function sortPrefsOnProperty(propName, ascOrder) {
       var c2 = document.querySelector("#F" + count + "2");
       var c3 = document.querySelector("#F" + count + "3");
       var c4 = document.querySelector("#F" + count + "4");
+      var c5 = document.querySelector("#F" + count + "5");
 
-  	  if (c1 == null || c2 == null || c3 == null || c4 == null) continue;
+  	  if (c1 == null || c2 == null || c3 == null || c4 == null || c5 == null) continue;
 
   	  // Clear color highlights
       c1.style["background-color"] = "";
       c2.style["background-color"] = "";
       c3.style["background-color"] = "";
       c4.style["background-color"] = "";
+      c5.style["background-color"] = "";
       if (keysInError.includes(c1.value.trim())) {
         c1.style["background-color"] = "#dbccff";
       }

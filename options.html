@@ -8,8 +8,8 @@
 
   <body>
 
-  	<div style="margin:0 auto;width:1000px;text-align:center">
-      <form>
+  	<div style="margin:0 auto;width:1030px;text-align:center">
+      <form autocomplete="off">
       	<h1><img style="vertical-align:middle" src="icons/icon48.png"></img> Custom Search Engine Options</h1>
       	<div><h3>Enter your search engine details for custom search engine plugin below:</h3>
              Search Url must contain either {searchTerms} or {searchTerms[x]} where x can range from 0 to 9 in any order or any number of times.
@@ -17,6 +17,7 @@
              <br>&nbsp;
              <br>Click on column name to sort.
         </div>
+        <div id="preferences_search"></div>
         <div id="preferences"></div>
         <div id="message"></div>
         <div id="buttonsBlock" style="width:700px">
@@ -50,6 +51,7 @@
     <script src="modal.js"></script>
     <script src="browser-polyfill.min.js"></script>
     <script src="options.js"></script>
+    <script src="optionsUtils.js"></script>
 
   </body>
 
