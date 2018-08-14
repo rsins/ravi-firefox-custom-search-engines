@@ -42,6 +42,7 @@ prefSearchDiv.onkeyup = function() {
   }
 
   oddEvenTableRowColoring("#preftable");
+  setMainDeletePrefCheckBoxBasedOnVisibility();
 }
 
 // ---------------------------- For Autocomplete functionality -------------------------------
