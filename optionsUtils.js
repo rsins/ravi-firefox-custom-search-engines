@@ -22,13 +22,14 @@ function oddEvenTableRowColoring(tabElmntCriteria) {
 
 // ------------------ For Preferences Search ---------------------
 var prefSearchDiv = document.querySelector('#preferences_search');
-prefSearchDiv.innerHTML = '<input type="text" id="myPrefSearch" placeholder="Search here for preferences ...">'
+prefSearchDiv.innerHTML = '<input type="text" id="myPrefSearch" placeholder="Search here for preferences [escape key to clear] ...">'
 
-prefSearchDiv.onkeyup = function() {
+prefSearchDiv.onkeyup = function(e) {
   let prefTable = document.querySelector("#preftable");
   // Declare variables
   var input, filter, table, tr, td, i;
   input = document.querySelector("#myPrefSearch");
+  if (e.keyCode == 27) input.value = '';
   filter = input.value.toUpperCase();
   tr = prefTable.getElementsByTagName("tr");
 
