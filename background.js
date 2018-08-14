@@ -169,8 +169,8 @@ function getMatchingSearchCategoriesForInputCategory(searchCategory) {
   if (searchCategory == CHAR_GROUP_NAME_START_IDENTIFIER) {
     // Pick all the search engines.
     for (var key in searchEngines) {
-      let cat = resolveValue(searchEngines[key], "category");
-      categories.add(cat);
+      var catArr = resolveValue(searchEngines[key],"category").split(CHAR_SEPARATOR_FOR_MULTI_SEARCH);
+      catArr.forEach(categories.add, categories);
     }
   }
   else if (searchCategory == (CHAR_GROUP_NAME_START_IDENTIFIER + CHAR_GROUP_NAME_START_IDENTIFIER)) {

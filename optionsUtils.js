@@ -1,15 +1,36 @@
 
+// ---------- For css styling the preferences table --------------
+function oddEvenTableRowColoring(tabElmntCriteria) {
+  let table = document.querySelector(tabElmntCriteria);
+  let tr = table.getElementsByTagName("tr");
+
+  let curVisibleRowIdx = 0;
+  for (let i = 1; i < tr.length; i++) {
+    if (tr[i].style.display != "none") {
+      curVisibleRowIdx++;
+      if ((curVisibleRowIdx % 2) == 0) {
+        tr[i].classList.remove("odd");
+        tr[i].classList.add("even");
+      }
+      else {
+        tr[i].classList.remove("even");
+        tr[i].classList.add("odd");
+      }
+    }
+  }
+}
+
 // ------------------ For Preferences Search ---------------------
 var prefSearchDiv = document.querySelector('#preferences_search');
 prefSearchDiv.innerHTML = '<input type="text" id="myPrefSearch" placeholder="Search here for preferences ...">'
 
 prefSearchDiv.onkeyup = function() {
+  let prefTable = document.querySelector("#preftable");
   // Declare variables
   var input, filter, table, tr, td, i;
   input = document.querySelector("#myPrefSearch");
   filter = input.value.toUpperCase();
-  table = document.querySelector("#preftable");
-  tr = table.getElementsByTagName("tr");
+  tr = prefTable.getElementsByTagName("tr");
 
   // Loop through all table rows, and hide those who don't match the search query
   for (i = 1; i < tr.length; i++) {
@@ -19,6 +40,8 @@ prefSearchDiv.onkeyup = function() {
       tr[i].style.display = "none";
     }
   }
+
+  oddEvenTableRowColoring("#preftable");
 }
 
 // ---------------------------- For Autocomplete functionality -------------------------------

@@ -206,6 +206,8 @@ function deletePreferenceRow() {
     if (chkBox) hasRow = true;
   }
   if (! hasRow) parseAndShowCurrentData({});
+  
+  oddEvenTableRowColoring("#preftable");
 }
 
 function addPreferenceRow() {
@@ -223,6 +225,8 @@ function addPreferenceRow() {
 
   let c5 = document.querySelector("#F" + preferenceRowCount + "5");
 	if (c5 != null) autocomplete(c5, listCurrentCategoriesFunction);
+
+  oddEvenTableRowColoring("#preftable");
 }
 
 function parseAndShowCurrentData(result) {
@@ -286,6 +290,8 @@ function parseAndShowCurrentData(result) {
 	  if (c5 == null) continue;
     autocomplete(c5, listCurrentCategoriesFunction);
   }
+
+  oddEvenTableRowColoring("#preftable");
 }
 
 // Get all the current values of categories for autocomplete
