@@ -38,6 +38,7 @@ function getPopularSearchEngineData() {
 
 // If value is undefined then return blank string.
 function resolveValue(curObj, name) {
+  if (curObj == undefined || curObj == null) return "";
   return (curObj.hasOwnProperty(name)) ? curObj[name] : "";
 }
 

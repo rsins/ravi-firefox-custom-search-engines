@@ -396,27 +396,29 @@ function pluginLoadData() {
   });
 }
 
-function onError(error) {
-  console.log(`Error: ${error}`);
-}
-
-function onGot(item) {
-  multiSearchDisabled = false
-  if (item[SEARCH_PREFERENCE_KEY]) searchEngines = item[SEARCH_PREFERENCE_KEY];
-
-  for (var key in searchEngines) {
-    if (key.includes(CHAR_SEPARATOR_FOR_MULTI_SEARCH)) {
-      multiSearchDisabled = true;
-    }
-    let curSearchObj = preferences[key];
-    // Handle new preference property 'category'
-    curSearchObj["category"] = resolveValue(curSearchObj, "category");
-  }
-}
 
 // Read preferences from storage
 function getSearchEnginesFromPreferences() {
   var preferences = browser.storage.local.get(SEARCH_PREFERENCE_KEY);
+
+  function onError(error) {
+    console.log(`Error: ${error}`);
+  }
+
+  function onGot(item) {
+    multiSearchDisabled = false
+    if (item[SEARCH_PREFERENCE_KEY]) searchEngines = item[SEARCH_PREFERENCE_KEY];
+
+    for (var key in searchEngines) {
+      if (key.includes(CHAR_SEPARATOR_FOR_MULTI_SEARCH)) {
+        multiSearchDisabled = true;
+      }
+      let curSearchObj = preferences[key];
+      // Handle new preference property 'category'
+      if (curSearchObj != undefined && curSearchObj != null) curSearchObj["category"] = resolveValue(curSearchObj, "category");
+    }
+  }
+
   preferences.then(onGot, onError);
 }
 
