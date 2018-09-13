@@ -42,7 +42,7 @@ input[type="text"] {
 
 /* Preference Search Content */
 #myPrefSearch {
-    background-image: url('/icons/icon48.png'); /* Add a search icon to input */
+    background-image: url('icons/icon48.png'); /* Add a search icon to input */
     background-position: 2px 2px; /* Position the search icon */
     background-repeat: no-repeat; /* Do not repeat the icon image */
     background-size: 20px 20px;
