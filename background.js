@@ -534,6 +534,8 @@ function main() {
 
   // Update the suggestions whenever the input is changed.
   browser.omnibox.onInputChanged.addListener((text, addSuggestions) => {
+    pluginLoadData();
+    if (text == "") return;
     addSuggestions(getSearchEngineSuggessions_Main(text));
   });
 

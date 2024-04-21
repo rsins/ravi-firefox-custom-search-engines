@@ -2,27 +2,16 @@
   "name": "Custom Search Engine",
   "short_name": "Custom Search Engine",
   "description" : "To use, type 'ms' plus keyword for custom search engines & search term into the url bar. (e.g. ms google <search text>).",
-  "version": "1.6",
-  "manifest_version": 2,
+  "version": "1.7",
+  "manifest_version": 3,
 
   "icons": {
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
 
-  "applications": {
-    "gecko": {
-      "id": "custom-search-engine@rsins.addons.mozilla.org",
-      "strict_min_version": "52.0a1"
-    }
-  },
-
   "background": {
-    "scripts": [
-    	"utils.js",
-    	"browser-polyfill.min.js",
-    	"background.js"
-    ]
+      "service_worker": "service_worker_wrapper.js"
   },
 
   "omnibox": { 
@@ -30,8 +19,11 @@
   },
 
   "permissions": [
-      "https://raw.githubusercontent.com/rsins/ravi-firefox-custom-search-engines/master/SampleCustomEngines/PopularSearchEngines.txt",
   	  "storage"
+  ],
+
+  "host_permissions": [
+      "https://raw.githubusercontent.com/rsins/ravi-firefox-custom-search-engines/master/SampleCustomEngines/PopularSearchEngines.txt"
   ],
 
   "options_ui": {

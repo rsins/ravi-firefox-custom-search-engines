@@ -180,8 +180,8 @@ function saveOptions(e) {
   browser.storage.local.set(prefStorageObj);
 
   // Get to background.js and run the load data function for the updated data.
-  let backgroundPage = browser.extension.getBackgroundPage();
-  backgroundPage.pluginLoadData();
+  //let backgroundPage = browser.extension.getBackgroundPage();
+  //backgroundPage.pluginLoadData(); // does not work with manfest V3
 
   restoreOptions();
   displayMessage("Preferences Saved!" + (multiSearchDisabled ? "<br><span style='color: brown'>Note: At least one key contains '" + CHAR_SEPARATOR_FOR_MULTI_SEARCH + "' so multi-search will be disabled.</span>" : ""));
